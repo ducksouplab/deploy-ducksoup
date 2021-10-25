@@ -158,7 +158,7 @@ Since deployment and running is managed by Docker Compose, most of the configura
     - how some folders on the host are mounted as volumes in the service/container
     - what environment variables are propagated from the host to the services (and renaming a few); some are required for the app to work (see [Environment variables](#environment-variables))
 
-### app folder layout
+### app/ folder layout
 
 The `app` folder contains the following files:
 
@@ -302,7 +302,7 @@ This behaviour enables the possibility to edit some configuration options (for i
 ```
 # nota bene: commands below are to be executed in the app/ folder
 
-su nano config/ducksoup/sfu.yml
+sudo nano config/ducksoup/sfu.yml
 appctl reload ducksoup
 ```
 
