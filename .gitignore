@@ -1,0 +1,9 @@
+.env
+*.key
+*.uid
+*.so
+dotconfig
+app/data
+app/plugins
+app/config/ducksoup
+docker-compose.override.yml

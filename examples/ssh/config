@@ -1,0 +1,5 @@
+Host ducksoup
+    ForwardAgent yes
+    Hostname IP_ADRESS_HERE
+    User deploy
+    IdentityFile ~/.ssh/ducksoup.id_rsa

@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  ducksoup:
+    build:
+        context: git@github.com:creamlab/ducksoup#container
+        dockerfile: docker/Dockerfile.build.multi_debian
+        args:
+          - appuser=$DOCKER_USER
+          - appgroup=$DOCKER_GROUP

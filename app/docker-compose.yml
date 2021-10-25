@@ -1,0 +1,138 @@
+version: "3.9"
+
+services:
+  ducksoup:
+    profiles:
+      - ducksoup
+    image: creamlab/ducksoup:latest
+    restart: unless-stopped
+    user: $DOCKER_USER:$DOCKER_GROUP
+    environment:
+      - DS_PORT
+      - DS_WEB_PREFIX
+      - DS_ORIGINS
+      - DS_TEST_LOGIN
+      - DS_TEST_PASSWORD
+      - DS_NVIDIA
+      - DS_FORCE_ENCODING_SIZE
+      - GST_DEBUG
+    ports:
+      - $DS_PORT:$DS_PORT
+    volumes:
+      - ./plugins:/app/plugins
+      - ./data/ducksoup:/app/data
+      - ducksoup-config:/app/config
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "100"
+          max-size: "200k"
+  db:
+    profiles:
+      - experiment
+    user: $DOCKER_USER:$DOCKER_GROUP
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB=experiment
+      - POSTGRES_USER=experiment
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - /etc/passwd:/etc/passwd:ro
+    networks:
+      - db_network
+  experiment:
+    profiles:
+      - experiment
+    depends_on: 
+      - db
+    build:
+      context: ../examples/experiment
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=$OTREE_DATABASE_URL
+      - PORT=$OTREE_PORT
+      - OTREE_ADMIN_PASSWORD
+      - DUCKSOUP_URL=$OTREE_DUCKSOUP_URL
+      - FORWARDED_ALLOW_IPS=$OTREE_FORWARDED_ALLOW_IPS
+      - OTREE_PRODUCTION=1
+      - OTREE_AUTH_LEVEL=STUDY
+    ports:
+      - "$OTREE_PORT:$OTREE_PORT"
+    networks:
+      - db_network
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "100"
+          max-size: "200k"
+  dcgm:
+    profiles:
+      - nvidia
+    image: nvidia/dcgm-exporter:2.1.8-2.4.0-rc.3-ubuntu20.04
+    ports:
+      - "9400:9400"
+    cap_add:
+      - SYS_ADMIN
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+  node_exporter:
+    profiles:
+      - monitoring
+    image: quay.io/prometheus/node-exporter:latest
+    command:
+      - '--path.rootfs=/host'
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+  prometheus:
+    profiles:
+      - monitoring
+    user: $DOCKER_USER:$DOCKER_GROUP
+    depends_on: 
+      - node_exporter
+    image: prom/prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    extra_hosts:
+      - "host:host-gateway"
+  grafana:
+    profiles:
+      - monitoring
+    user: $DOCKER_USER:$DOCKER_GROUP
+    depends_on: 
+      - prometheus
+    image: grafana/grafana
+    restart: unless-stopped
+    ports:
+      - "$GF_PORT:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=$GF_PASSWORD
+      - GF_SERVER_ROOT_URL=$GF_PATH
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_LIVE_MAX_CONNECTIONS=0
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+
+volumes:
+  ducksoup-config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: $PWD/config/ducksoup
+      
+networks:
+  db_network:

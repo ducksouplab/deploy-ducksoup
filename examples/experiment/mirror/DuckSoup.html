@@ -1,0 +1,29 @@
+{{ block title }}
+Is that you?
+{{ endblock }}
+
+{{ block global_styles }}
+<link rel="stylesheet" href="{{ static 'global/main.css' }}" type="text/css">
+{{ endblock }}
+
+{% block global_scripts %}
+<script src="{{ duckSoupJsUrl }}"></script>
+<script src="{{ static 'global/app.js' }}"></script>
+{% endblock %}
+
+{{ block content }}
+
+<div id="stopped" class="d-none">
+    <p id="stopped-message">Video session has ended</p>
+</div>
+<div id="failed" class="d-none">
+    <p>Erreur</p>
+</div>
+<div class="ducksoup-container">
+    <div id="ducksoup-root"></div>
+    <div class="overlay d-none"><div>Ending soon</div></div>
+</div>
+
+<form id="form" class="d-none"></form>
+
+{{ endblock }}

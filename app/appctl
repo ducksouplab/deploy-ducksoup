@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [ "$1" = "pull" ] && [ "$2" = "" ]; then
+    cmd="DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose pull --include-deps"
+elif [ "$1" = "" ] || [ "$2" = "" ]; then
+    echo "usage for profiles: appctl <start|restart|stop> <ducksoup|monitoring|experiment|nvidia>"
+    echo "usage for services: appctl <pull|sh> <service_name>"
+elif [ "$1" = "up" ]; then
+    cmd="DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose --profile $2 up -d --build --force-recreate"
+elif [ "$1" = "reload" ]; then
+    cmd="DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose --profile $2 up -d --force-recreate"
+elif [ "$1" = "stop" ]; then
+    cmd="DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose --profile $2 stop"
+elif [ "$1" = "pull" ]; then
+    cmd="DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose pull --include-deps $2"
+elif [ "$1" = "sh" ]; then
+    cmd="DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose exec $2 sh"
+fi
+
+if [ "$cmd" ]; then
+    echo "$cmd"
+    eval "$cmd"
+fi

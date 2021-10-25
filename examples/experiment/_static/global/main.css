@@ -1,0 +1,24 @@
+.ducksoup-container {
+    position: relative;
+}
+
+.ducksoup-container, #ducksoup-root {
+    width: 800px;
+    height: 600px;
+}
+
+.ducksoup-container .overlay {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    text-align: right;
+}
+
+.ducksoup-container .overlay div {
+    padding: 0 8px;
+    height: 26px;
+    border-radius: 5px;
+    color:white;
+    background: #888;
+    padding: 0 5px;
+}

@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  ducksoup:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              driver: nvidia
+              count: all
+  experiment:
+    build:
+      context: git@gitlab.com:<owner>/<repository>#<branch>
+      dockerfile: <path to Dockerfile in project>
