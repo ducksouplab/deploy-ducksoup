@@ -55,7 +55,7 @@ Install the following dependencies on the host:
 
 The app is installed and run by Docker Compose (see below).
 
-### Optional installation for NVIDIA GPU
+### Optional: installation for NVIDIA GPU
 
 *Skip this paragraph if you don't use a NVIDIA GPU for video encoding*
 
@@ -74,8 +74,6 @@ docker run -it --rm --gpus all ubuntu nvidia-smi
 ```
 
 And check GPUs are listed.
-
-When launching DuckSoup, don't forget to enable the GPU by setting `DS_NVIDIA=true` in the `.env` file.
 
 ## Host configuration
 
@@ -180,6 +178,10 @@ mkdir -p config config/ducksoup data/db data/ducksoup data/grafana data/promethe
 chown -R deploy:deploy config plugins data  
 chmod 770 -R data
 ```
+
+### Enable experiment build
+
+Create the `docker-compose.override.yml` file by copying `docker-compose.override-example.yml`: it specifies how to build the image needed for the experiment service (the build option has not been defined in `docker-compose.yml`).
 
 ### Environment variables
 
@@ -287,6 +289,13 @@ appctl pull ducksoup
 appctl sh <service_name>
 ```
 
+### Optional: enabling NVIDIA GPU for DuckSoup
+
+Ensure you've followed [Optional: installation for NVIDIA GPU](#optional-installation-for-nvidia-gpu), then two actions are needed:
+
+- enable the GPU capability in Docker context: copy the contents of `examples/docker-compose.override-gpu-example.yml` in `app/docker-compose.override.yml` (to be created if not already)
+- start DuckSoup with `DS_NVIDIA=true` in the `.env` file (see [Environment variables](#environment-variables))
+
 ### Optional: GStreamer plugins
 
 Put any additional GStreamer plugins (or dynamic libraries, compiled for the DuckSoup debian target) in the `plugins` host folder, to have them available to DuckSoup.
@@ -316,7 +325,7 @@ Some services are based on prebuilt/published Docker images (like `creamlab/duck
 
 The experiment example image is built locally from the `examples/experiment/Dockerfile` each time you `appctl up experiment` (but it won't be rebuilt by `appctl reload experiment`).
 
-It is also possible to build an image by specifying the git repository and branch of a project (check `docker-compose.override-example.yml` to see how). In that case, push first to the aforementioned branch and repository, before rebuilding the image (which is done by `appctl up`). For private git repository, check the appropriate documentation (on github or gitlab for instance) about how to authenticate the `deploy` user to this service, typically by adding and using a SSH key when pulling (the pull being triggered silently by Docker Compose).
+It is also possible to build an image by specifying the git repository and branch of a project (check `examples/docker-compose.ds-from-source.yml` to see how). In that case, push first to the aforementioned branch and repository, before rebuilding the image (which is done by `appctl up`). For private git repository, check the appropriate documentation (on github or gitlab for instance) about how to authenticate the `deploy` user to this service, typically by adding and using a SSH key when pulling (the pull being triggered silently by Docker Compose).
 
 ### Deploy new versions
 

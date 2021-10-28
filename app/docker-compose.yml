@@ -47,15 +47,12 @@ services:
       - experiment
     depends_on: 
       - db
-    build:
-      context: ../examples/experiment
     restart: unless-stopped
     environment:
       - DATABASE_URL=$OTREE_DATABASE_URL
       - PORT=$OTREE_PORT
       - OTREE_ADMIN_PASSWORD
       - DUCKSOUP_URL=$OTREE_DUCKSOUP_URL
-      - FORWARDED_ALLOW_IPS=$OTREE_FORWARDED_ALLOW_IPS
       - OTREE_PRODUCTION=1
       - OTREE_AUTH_LEVEL=STUDY
     ports:
