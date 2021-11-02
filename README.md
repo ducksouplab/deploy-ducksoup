@@ -207,6 +207,8 @@ Here are the environment variables you may edit, grouped by service:
     - `DS_ORIGINS`: origins trusted by DuckSoup (you need to add DuckSoup itself, for instance `https://ducksoup-host`, if you want to use test pages like https://ducksoup-host/test/mirror/, or other origins if experiments are served from other domains)
     - `DS_TEST_LOGIN`: basic auth login for DuckSoup test pages
     - `DS_TEST_PASSWORD`: basic auth password for DuckSoup test pages
+    - `DS_STATS_LOGIN`: basic auth login for DuckSoup stats pages
+    - `DS_STATS_PASSWORD`: basic auth password for DuckSoup stats pages
     - `DS_NVIDIA`: use NVIDIA hardware for H264 encoding and decoding (enable only if GPU available on host)
     - `GST_DEBUG`: control GStreamer debug output as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c)
 - `postgres` service:
@@ -216,7 +218,6 @@ Here are the environment variables you may edit, grouped by service:
     - `OTREE_DATABASE_URL` PostgreSQL connection URL
     - `OTREE_ADMIN_PASSWORD` password of the oTree admin web interface
     - `OTREE_DUCKSOUP_URL` DuckSoup root URL, for instance `https://ducksoup-host/` (with trailing slash)
-    - `OTREE_FORWARDED_ALLOW_IPS` **TODO** needs to be tested
 - `grafana` service:
     - `GF_PORT` grafana running port as defined in nginx host proxy
     - `GF_PATH` grafana path prefix as defined in nginx host (set to `/grafana` if entry point is `https://ducksoup-host/grafana`)

@@ -13,6 +13,8 @@ services:
       - DS_ORIGINS
       - DS_TEST_LOGIN
       - DS_TEST_PASSWORD
+      - DS_STATS_LOGIN
+      - DS_STATS_PASSWORD
       - DS_NVIDIA
       - DS_FORCE_ENCODING_SIZE
       - GST_DEBUG
