@@ -16,7 +16,6 @@ services:
       - DS_STATS_LOGIN
       - DS_STATS_PASSWORD
       - DS_NVIDIA
-      - DS_FORCE_ENCODING_SIZE
       - GST_DEBUG
     ports:
       - $DS_PORT:$DS_PORT
