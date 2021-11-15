@@ -168,15 +168,16 @@ The `app` folder contains the following files:
 Then, by convention (of this project), `app` subfolders are meant to be mounted as Docker volumes:
 
 - `config` contains configuration files
-- `plugins` (only for DuckSoup service) is used to enhance DuckSoup with additional GStreamer plugins (see how [here](#optional-gstreamer-plugins))
 - `data` (needs to be writable by the `deploy` user) contains data created by the app that needs to be persisted between restarts
+- `log` (needs to be writable by the `deploy` user) contains logs produced by services
+- `plugins` (only for DuckSoup service) is used to enhance DuckSoup with additional GStreamer plugins (see how [here](#optional-gstreamer-plugins))
 
 When cloning this repository the `config/prometheus` folder is created (and contains a prepared configuration file), but `config/ducksoup`, `plugins` and `data` needs to be created and owned by `deploy:deploy`:
 
 ```
-mkdir -p config config/ducksoup data/db data/ducksoup data/grafana data/prometheus plugins
-chown -R deploy:deploy config plugins data  
-chmod 770 -R data
+mkdir -p config config/ducksoup data/db data/ducksoup data/grafana data/prometheus log/ducksoup plugins
+chown -R deploy:deploy config data log plugins  
+chmod 770 -R data log
 ```
 
 ### Enable experiment build
@@ -205,12 +206,14 @@ Here are the environment variables you may edit, grouped by service:
         - leave empty if DuckSoup is available at `https://ducksoup-host`
         - `DS_WEB_PREFIX=/path` if  DuckSoup is available at `https://ducksoup-host/path` (the nginx configuration would then proxy DuckSoup in a `location /path {...}` block)
     - `DS_ORIGINS`: origins trusted by DuckSoup (you need to add DuckSoup itself, for instance `https://ducksoup-host`, if you want to use test pages like https://ducksoup-host/test/mirror/, or other origins if experiments are served from other domains)
+    - `DS_LOG_FILE` declare a file to write logs to (if unset or if file can't be opened, fallback to Stdout)
     - `DS_TEST_LOGIN`: basic auth login for DuckSoup test pages
     - `DS_TEST_PASSWORD`: basic auth password for DuckSoup test pages
     - `DS_STATS_LOGIN`: basic auth login for DuckSoup stats pages
     - `DS_STATS_PASSWORD`: basic auth password for DuckSoup stats pages
     - `DS_NVIDIA`: use NVIDIA hardware for H264 encoding and decoding (enable only if GPU available on host)
-    - `GST_DEBUG`: control GStreamer debug output as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c)
+    - `GST_DEBUG`: control GStreamer debug output format as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c)
+    - `GST_DEBUG_FILE`: define GStreamer debug destination file
 - `postgres` service:
     - `POSTGRES_PASSWORD` PostgreSQL password also known by the experiment service in `OTREE_DATABASE_URL`
 - `experiment` service:

@@ -20,8 +20,9 @@ services:
     ports:
       - $DS_PORT:$DS_PORT
     volumes:
-      - ./plugins:/app/plugins
       - ./data/ducksoup:/app/data
+      - ./log/ducksoup:/app/log
+      - ./plugins:/app/plugins
       - ducksoup-config:/app/config
     logging:
       driver: "json-file"
