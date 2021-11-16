@@ -207,7 +207,7 @@ Here are the environment variables you may edit, grouped by service:
         - `DS_WEB_PREFIX=/path` if  DuckSoup is available at `https://ducksoup-host/path` (the nginx configuration would then proxy DuckSoup in a `location /path {...}` block)
     - `DS_ORIGINS`: origins trusted by DuckSoup (you need to add DuckSoup itself, for instance `https://ducksoup-host`, if you want to use test pages like https://ducksoup-host/test/mirror/, or other origins if experiments are served from other domains)
     - `DS_LOG_STDOUT` (defaults to false) to print logs to Stdout (if `DS_LOG_FILE` is also set, logs are written to both)
-    - `DS_LOG_FILE` declare a file to write logs to (fails silently if file can't be opened)
+    - `DS_LOG_FILE` declare a file to write logs to (fails silently if file can't be opened) (file path from container viewpoint)
     - `DS_TEST_LOGIN`: basic auth login for DuckSoup test pages
     - `DS_TEST_PASSWORD`: basic auth password for DuckSoup test pages
     - `DS_STATS_LOGIN`: basic auth login for DuckSoup stats pages
