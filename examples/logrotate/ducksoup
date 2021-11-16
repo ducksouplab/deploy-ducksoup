@@ -1,0 +1,9 @@
+/home/deploy/deploy-ducksoup/app/log/ducksoup/*.log {
+  rotate 30
+  daily
+  copytruncate
+  compress
+  delaycompress
+  missingok
+  notifempty
+}
