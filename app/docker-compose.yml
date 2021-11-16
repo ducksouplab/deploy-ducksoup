@@ -19,6 +19,7 @@ services:
       - DS_STATS_PASSWORD
       - DS_NVIDIA
       - GST_DEBUG
+      - GST_DEBUG_FILE
     ports:
       - $DS_PORT:$DS_PORT
     volumes:
