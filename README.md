@@ -224,13 +224,13 @@ Here are the environment variables you may edit, grouped by service:
     - `DS_ORIGINS`: origins trusted by DuckSoup (you need to add DuckSoup itself, for instance `https://ducksoup-host`, if you want to use test pages like https://ducksoup-host/test/mirror/, or other origins if experiments are served from other domains)
     - `DS_LOG_STDOUT` (defaults to false) to print logs to Stdout (if `DS_LOG_FILE` is also set, logs are written to both)
     - `DS_LOG_FILE` declare a file to write logs to (fails silently if file can't be opened) (file path from container viewpoint)
+    - `DS_DEBUG_LOG=true` (defaults to false) to generate additional debug logs
     - `DS_TEST_LOGIN`: basic auth login for DuckSoup test pages
     - `DS_TEST_PASSWORD`: basic auth password for DuckSoup test pages
     - `DS_STATS_LOGIN`: basic auth login for DuckSoup stats pages
     - `DS_STATS_PASSWORD`: basic auth password for DuckSoup stats pages
     - `DS_NVIDIA`: use NVIDIA hardware for H264 encoding and decoding (enable only if GPU available on host)
     - `GST_DEBUG`: control GStreamer debug output format as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c)
-    - `GST_DEBUG_FILE`: define GStreamer debug destination file
 - `postgres` service:
     - `POSTGRES_PASSWORD` PostgreSQL password also known by the experiment service in `OTREE_DATABASE_URL`
 - `experiment` service:

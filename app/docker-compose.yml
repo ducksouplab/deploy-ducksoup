@@ -13,13 +13,13 @@ services:
       - DS_ORIGINS
       - DS_LOG_STDOUT
       - DS_LOG_FILE
+      - DS_DEBUG_LOG
       - DS_TEST_LOGIN
       - DS_TEST_PASSWORD
       - DS_STATS_LOGIN
       - DS_STATS_PASSWORD
       - DS_NVIDIA
       - GST_DEBUG
-      - GST_DEBUG_FILE
     ports:
       - $DS_PORT:$DS_PORT
     volumes:
