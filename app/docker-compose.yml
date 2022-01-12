@@ -12,7 +12,8 @@ services:
       - DS_WEB_PREFIX
       - DS_ORIGINS
       - DS_GEN_TWCC
-      - DS_GST_GEN_PLI
+      - DS_GST_DISABLE_PLI
+      - DS_GST_ENABLE_TRACKING
       - DS_LOG_STDOUT
       - DS_LOG_FILE
       - DS_LOG_LEVEL
