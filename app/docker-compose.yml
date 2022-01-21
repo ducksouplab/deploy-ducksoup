@@ -22,6 +22,7 @@ services:
       - DS_STATS_LOGIN
       - DS_STATS_PASSWORD
       - DS_NVIDIA
+      - CONTAINER_STDERR_FILE=$DS_CONTAINER_STDERR_FILE
       - GST_DEBUG
     ports:
       - $DS_PORT:$DS_PORT

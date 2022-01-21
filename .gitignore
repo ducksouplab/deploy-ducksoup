@@ -3,7 +3,8 @@
 *.uid
 *.so
 dotconfig
-app/data
-app/plugins
 app/config/ducksoup
+app/data
+app/log
+app/plugins
 docker-compose.override.yml
