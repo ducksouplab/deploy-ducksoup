@@ -413,7 +413,7 @@ Grafana is available at:
 
 Once up and running, Grafana needs to be configured to collect and display data:
 
-- under the `https://ducksoup-host.com/grafana/datasources` page, add prometheus as a data source. Since prometheus is running within a container, you need to use the service name as the host in the `HTTP>URL` field and enter `http://prometheus:9090`, then click `Save & Test`
+- under the `https://ducksoup-host.com/grafana/datasources` page, add prometheus as a data source. Since prometheus is running within a container, you need to use the service name as the host in the `HTTP>URL` field: if prometheus is running on port 9090, enter `http://prometheus:9090` and click `Save & Test`
 - under the https://ducksoup-host.com/grafana/dashboards page, click `Import` and add the following ids in the field `Import via grafana.com`: 1860 (then click `Load` and choose `Prometheus` as the data source) and 12239 (then click `Load`)
 
 For more information check [Node Exporter Full](https://grafana.com/grafana/dashboards/1860) and [NVIDIA DCGM Exporter Dashboard](https://grafana.com/grafana/dashboards/12239) documentation.

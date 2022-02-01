@@ -26,10 +26,10 @@ services:
     ports:
       - $DS_PORT:$DS_PORT
     volumes:
+      - ./config/ducksoup:/app/config
       - ./data/ducksoup:/app/data
       - ./log/ducksoup:/app/log
       - ./plugins:/app/plugins
-      - ducksoup-config:/app/config
     logging:
       driver: "json-file"
       options:
@@ -130,14 +130,6 @@ services:
       - GF_LIVE_MAX_CONNECTIONS=0
     volumes:
       - ./data/grafana:/var/lib/grafana
-
-volumes:
-  ducksoup-config:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: $PWD/config/ducksoup
       
 networks:
   db_network:
