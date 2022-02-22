@@ -174,7 +174,7 @@ The `app` folder contains the following files:
 
 - a base `docker-compose.yml` that declares and configures services; you may edit this file or prefer using an override (see next bullet) to fit your needs
 - `docker-compose.override-example.yml` can be used as an example to create a `docker-compose.override.yml` (to override existing services or even declare new ones, without editing `docker-compose.yml`)
-- `env.example` can be used as an example to create a `.env` file that will be automatically loaded by Docker Compose to define environment variables
+- `env.example` can be used as an example to create a `.env` file that will be automatically loaded by Docker Compose to define environment variables (made available to `docker compose` commands, and also forwarded to containers depending the `environment:` section of each service)
 - `appctl` is a helper script that shortens a few frequent Docker Compose commands
 
 Then, by convention (of this project), `app` subfolders are meant to be mounted as Docker volumes:
@@ -188,7 +188,7 @@ When cloning this repository the `config/prometheus` folder is created (and cont
 
 ```
 mkdir -p config config/ducksoup data/db data/ducksoup data/grafana data/prometheus log/ducksoup plugins
-chown -R deploy:deploy config data log plugins  
+chown -R deploy:deploy config data log plugins
 chmod 770 -R data log
 ```
 
@@ -202,17 +202,20 @@ Create the `docker-compose.override.yml` file by copying `docker-compose.overrid
 
 ### Environment variables
 
-A `.env` file is **needed** to provide the different services with appropriate configuration. Create it (by copying `env.example`) and at least change secrets (you may also change other variables, like ports, depending on the nginx configuration):
+A `.env` file is **needed** to provide the different services with appropriate configuration. Create it (by copying `env.example`) and then edit it:
 
 ```
 cp env.example .env
 nano .env
 ```
 
-When runnning the app (see below, through `docker compose` or `appctl`) the `.env` file is automatically loaded. It's a convenient way to:
+You should at least:
+1. define `DOCKER_UNAME`, `DOCKER_UID` and `DOCKER_GID`: they are used to define the user that launches the different services. If you follow this documentation setup, `DOCKER_UNAME` is `deploy`, `DOCKER_UID` is the output of `id deploy -u` and `DOCKER_GID` is the output of `id deploy -g`. If you prefer another user, it should own folders mounted as volumes to allow the containers to write to them (check [app/ folder layout](#app-folder-layout) and in particular the `chown` command)
+2. change secrets
 
-- define secrets
-- override settings (like ports) without editing `docker-compose.yml`
+(regarding 1., please note it could be possible to define different users for different services by modifying the `user:` section of each service in `docker-compose.yml` or `docker-compose.override.yml`)
+
+You may also change other variables, like ports (depending on your nginx configuration) or service settings. Indeed, when runnning the app (see below, through `docker compose` or `appctl`) the `.env` file is automatically loaded.
 
 Here are the environment variables you may edit, grouped by service:
 
@@ -265,15 +268,16 @@ Let's see a few available Docker and Docker Compose commands:
 
 ```
 # nota bene: commands below are to be executed by the deploy user in the app/ folder
+# and the .env file should specify this user as stated above
 
 # retrieve the latest Docker images (used to instantiate services)
 docker compose pull
 
-# run all profiles as deploy:deploy
-DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose up -d --build
+# run all profiles
+docker compose up -d --build
 
-# run a given profile as deploy:deploy
-DOCKER_USER=$(id deploy -u) DOCKER_GROUP=$(id deploy -g) docker compose --profile ducksoup up -d --build
+# run a given profile
+docker compose --profile ducksoup up -d --build
 
 # clean/prune Docker images
 docker image prune -f
@@ -292,6 +296,7 @@ Usage by profile:
 
 ```
 # nota bene: commands below are to be executed by the deploy user in the app/ folder
+# and the .env file should specify this user as stated above
 
 # (re)build and start services with given profile
 appctl up ducksoup
@@ -301,7 +306,8 @@ appctl up experiment
 # stop profiles
 appctl stop <profile_name>
 
-# reload in case the .env file or the docker-compose.yml have changed
+# reloading is enough (as opposed to `up`) if...
+# ...only configuration files have changed, like .env or files in the config folder
 appctl reload <profile_name>
 ```
 
@@ -309,10 +315,34 @@ Usage by service:
 
 ```
 # pull latest ducksoup image (from docker hub)
-appctl pull ducksoup
+appctl pull <service_name>
 
 # enter a running container (to inspect/debug) by service name
 appctl sh <service_name>
+```
+
+One special feature, only for `ducksoup`: when the service is launched the first time, the `config/ducksoup` folder of the host is populated with `/app/config` from the container, thanks to a Docker "named volume". It enables editing config files (for instance the minimal video bitrate for reencoded tracks, in `config/ducksoup/sfu.yml`) and reloading `ducksoup` with this new configuration:
+
+```
+nano config/ducksoup/gst.yml
+appctl reload ducksoup
+```
+
+One caveat of this approach is that when a new image of DuckSoup is pulled (with `appctl pull ducksoup`) and the `ducksoup` service is rebuild and restarted (with `appctl up ducksoup`) the `config/ducksoup` already exists and won't be modified even if the new image contained modifications. That's why you have the choice between two deployment methods:
+
+Method #1 (keep current `config/ducksoup` contents on the host and mount them in the `ducksoup` service):
+
+```
+appctl pull ducksoup
+appctl up ducksoup
+```
+
+Method #2 (reset `config/ducksoup` contents with the latest DuckSoup image contents):
+
+```
+appctl pull ducksoup
+appctl reset-config ducksoup
+appctl up ducksoup
 ```
 
 ### Optional: enabling NVIDIA GPU for DuckSoup
@@ -328,21 +358,6 @@ Put any additional GStreamer plugins (or dynamic libraries, compiled for the Duc
 
 Indeed this folder is mounted as `/app/plugins` in the container, which is listed in the image environment variables `GST_PLUGIN_PATH` and `LD_LIBRARY_PATH`.
 
-### Optional: edit DuckSoup configuration files
-
-When DuckSoup starts, it reads a few configuration options from text files in `/app/config` (in the container). This folder is mounted as a named volume (see the `volumes` section in `docker-compose.yml`), implying that files from the container in `/app/config` are copied back to `config/ducksoup` on the host (whereas for unnamed volumes files in the container are not propagated to the host).
-
-This behaviour enables the possibility to edit some configuration options (for instance the minimal video bitrate for reencoded tracks, in `config/ducksoup/sfu.yml`). Since the named volume is owned by root, the process looks like:
-
-```
-# nota bene: commands below are to be executed in the app/ folder
-
-sudo nano config/ducksoup/sfu.yml
-appctl reload ducksoup
-```
-
-It is also possible to edit GStreamer options in `config/ducksoup/gst.yml` and in the `config/ducksoup/pipelines/` folder.
-
 ## Deployment
 
 ### Release new versions
@@ -353,7 +368,7 @@ The experiment example image is built locally from the `examples/experiment/Dock
 
 It is also possible to build an image by specifying the git repository and branch of a project (check `examples/docker-compose.ds-from-source.yml` to see how). In that case, push first to the aforementioned branch and repository, before rebuilding the image (which is done by `appctl up`). For private git repository, check the appropriate documentation (on github or gitlab for instance) about how to authenticate the `deploy` user to this service, typically by adding and using a SSH key when pulling (the pull being triggered silently by Docker Compose).
 
-### Deploy new versions
+### Sum-up: deploy new versions
 
 Once a new version of the targeted service has been published (be it a Docker image or a project with a Dockerfile), here is how to update and run the service:
 
@@ -363,10 +378,9 @@ cd <path to app/>
 
 # pull latest DuckSoup image and start service
 appctl pull ducksoup
+# resetting config is optional, see above
+appctl reset-config ducksoup
 appctl up ducksoup
-
-# no need to pull experiment since it's built from a local Dockerfile
-appctl up experiment
 ```
 
 ## Usage
