@@ -341,9 +341,12 @@ Method #2 (reset `config/ducksoup` contents with the latest DuckSoup image conte
 
 ```
 appctl pull ducksoup
+# answer 'y' to delete `config\ducksoup` contents
 appctl reset-config ducksoup
 appctl up ducksoup
 ```
+
+(one may finally save changes before `reset-config` and decide how to merge files)
 
 ### Optional: enabling NVIDIA GPU for DuckSoup
 
