@@ -1,18 +1,16 @@
 #!/bin/sh
 
-if [ "$1" = "pull" ] && [ "$2" = "" ]; then
-    cmd="docker compose pull --include-deps"
-elif [ "$1" = "" ] || [ "$2" = "" ]; then
+if [ "$1" = "" ] || [ "$2" = "" ]; then
     echo "usage for profiles: appctl <start|restart|stop> <ducksoup|monitoring|experiment|nvidia>"
     echo "usage for services: appctl <pull|sh> <service_name>"
-elif [ "$1" = "up" ] && [ "$2" = "ducksoup" ]; then
-    cmd="docker compose --profile $2 up -d --build --force-recreate;"
 elif [ "$1" = "up" ]; then
     cmd="docker compose --profile $2 up -d --build --force-recreate"
 elif [ "$1" = "reload" ]; then
     cmd="docker compose --profile $2 up -d --force-recreate"
 elif [ "$1" = "stop" ]; then
     cmd="docker compose --profile $2 stop"
+elif [ "$1" = "pull" ] && [ "$2" = "ducksoup" ]; then
+    cmd="docker pull creamlab/ducksoup"
 elif [ "$1" = "pull" ]; then
     cmd="docker compose pull --include-deps $2"
 elif [ "$1" = "sh" ]; then
