@@ -1,7 +1,7 @@
 FROM creamlab/ducksoup:latest AS full
 
-# creating this lightweight image is mostly done to set relevant ownerships
-# on named volume mapped to confid
+# this lightweight image is used to set ownerships on named volume mapped to config
+# using $DOCKER_* variables in .env file as user:group value
 FROM creamlab/debian-gstreamer:bullseye-gst1.20.0 AS prod
 
 RUN apt-get update && apt-get upgrade -y
@@ -18,12 +18,12 @@ RUN groupadd -g ${GID} ${UNAME} && useradd -u ${UID} -g ${GID} -s /bin/sh ${UNAM
 USER ${UID}:${GID}
 WORKDIR /app
 
-COPY --chown=${UID}:${GID} --from=full /build/ducksoup .
+COPY --chown=${UID}:${GID} --from=full /app/ducksoup .
 # check .dockerignore to see generated scripts are excluded first...
-COPY --chown=${UID}:${GID} --from=full /build/front/static ./front/static
+COPY --chown=${UID}:${GID} --from=full /app/front/static ./front/static
 
 # add config files last not to refresh too many layers in case only config changes
-COPY --chown=${UID}:${GID} --from=full /build/config ./config
+COPY --chown=${UID}:${GID} --from=full /app/config ./config
 
 # write date and then append err to file if CONTAINER_STDERR_FILE exists
 SHELL ["/bin/bash", "-c"]
