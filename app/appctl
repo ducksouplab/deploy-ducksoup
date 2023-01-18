@@ -10,7 +10,7 @@ elif [ "$1" = "reload" ]; then
 elif [ "$1" = "stop" ]; then
     cmd="docker compose --profile $2 stop"
 elif [ "$1" = "pull" ] && [ "$2" = "ducksoup" ]; then
-    cmd="docker pull creamlab/ducksoup"
+    cmd="docker pull ducksouplab/ducksoup"
 elif [ "$1" = "pull" ]; then
     cmd="docker compose pull --include-deps $2"
 elif [ "$1" = "sh" ]; then

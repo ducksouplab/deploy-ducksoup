@@ -2,7 +2,7 @@
 
 ## Aim
 
-This project provides documentation, configuration samples and tools to automate the deployment of an online experiment that relies on [DuckSoup](https://github.com/creamlab/ducksoup) for its videoconferencing part.
+This project provides documentation, configuration samples and tools to automate the deployment of an online experiment that relies on [DuckSoup](https://github.com/ducksouplab/ducksoup) for its videoconferencing part.
 
 The main components of the stack are Linux, nginx and Docker (including a published image of DuckSoup).
 
@@ -17,7 +17,7 @@ As a by-product, a minimal oTree webapp is shipped in `examples/experiment` to c
 
 ## Alternatives
 
-Running the different services (oTree, the database, DuckSoup...) that make the overall application is managed by Docker Compose. Though this project heavily relies on Docker and Docker Compose, it's fine to [build DuckSoup](https://github.com/creamlab/ducksoup#build-from-source) from source and to prefer a different deployment method than the one described below.
+Running the different services (oTree, the database, DuckSoup...) that make the overall application is managed by Docker Compose. Though this project heavily relies on Docker and Docker Compose, it's fine to [build DuckSoup](https://github.com/ducksouplab/ducksoup#build-from-source) from source and to prefer a different deployment method than the one described below.
 
 Moreover, this project illustrates a contained approach by running all the services on the same host with a unique `docker-compose.yml` definition file. Relying on Docker or not, it's also fine to prefer an architecture where DuckSoup is run on its own host (possibly shipped with a GPU to help with video encoding) whereas one or more experiments use the DuckSoup instance as-a-service from other hosts/origins (in that case the origins have to be declared/granted by setting the `DS_ORIGINS` environment variable of DuckSoup, see more [here](#environment-variables)).
 
@@ -33,7 +33,7 @@ The process of installing and running DuckSoup can be broken down as:
 
 This documentation showcases the deployment of an app made of three parts/profiles:
 
-- [DuckSoup](https://github.com/creamlab/ducksoup), a videoconferencing tool for online social experiments
+- [DuckSoup](https://github.com/ducksouplab/ducksoup), a videoconferencing tool for online social experiments
 - a minimal experiment based on [oTree](https://otree.readthedocs.io/en/latest/) that uses DuckSoup
 - a server monitoring tool based on Grafana and Prometheus
 
@@ -152,7 +152,7 @@ Switch to the `deploy` user, clone this repository and change directory:
 
 ```
 su deploy
-git clone git@github.com:creamlab/deploy-ducksoup.git
+git clone git@github.com:ducksouplab/deploy-ducksoup.git
 cd app
 ```
 
@@ -219,7 +219,7 @@ You may also change other variables, like ports (depending on your nginx configu
 
 Here are the environment variables you may edit, grouped by service:
 
-- `ducksoup` service (only relevant variables are described here, please refer to the [Ducksoup documentation](https://github.com/creamlab/ducksoup#environment-variables) for an exhaustive list):  
+- `ducksoup` service (only relevant variables are described here, please refer to the [Ducksoup documentation](https://github.com/ducksouplab/ducksoup#environment-variables) for an exhaustive list):  
     - `DS_PORT`: port listened by DuckSoup (nginx proxies to this port)
     - `DS_WEB_PREFIX`, DuckSoup web server and signaling prefix:
         - leave empty if DuckSoup is available at `https://ducksoup-host`
@@ -365,7 +365,7 @@ Indeed this folder is mounted as `/app/plugins` in the container, which is liste
 
 ### Release new versions
 
-Some services are based on prebuilt/published Docker images (like `creamlab/ducksoup:latest` or `postgres:13`) and can only get latest developments when images are updated.
+Some services are based on prebuilt/published Docker images (like `ducksouplab/ducksoup:latest` or `postgres:13`) and can only get latest developments when images are updated.
 
 The experiment example image is built locally from the `examples/experiment/Dockerfile` each time you `appctl up experiment` (but it won't be rebuilt by `appctl reload experiment`).
 
@@ -395,7 +395,7 @@ For each service listed below, two example links are given:
 
 ### DuckSoup
 
-Please refer to [DuckSoup documentation](https://github.com/creamlab/ducksoup).
+Please refer to [DuckSoup documentation](https://github.com/ducksouplab/ducksoup).
 
 A mirror test page is available at:
 

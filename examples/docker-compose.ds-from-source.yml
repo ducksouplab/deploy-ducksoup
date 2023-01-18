@@ -3,7 +3,7 @@ version: "3.9"
 services:
   ducksoup:
     build:
-      context: git@github.com:creamlab/ducksoup#container
+      context: git@github.com:ducksouplab/ducksoup#container
       dockerfile: docker/Dockerfile.build.multi
       args:
         - appuser=$DOCKER_USER
