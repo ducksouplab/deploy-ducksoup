@@ -167,7 +167,8 @@ Switch to the `deploy` user, clone this repository and change directory:
 
 ```
 su deploy
-git clone git@github.com:ducksouplab/deploy-ducksoup.git
+git clone https://github.com/ducksouplab/deploy-ducksoup.git
+cd deploy-ducksoup
 ```
 
 ### Introducing docker-compose.yml
@@ -286,7 +287,7 @@ Let's see a few available Docker and Docker Compose commands:
 # and the .env file should specify this user as stated above
 
 # retrieve the latest Docker images (used to instantiate services)
-docker compose pull
+docker compose pull <service_name>
 
 # run all profiles
 docker compose up -d --build
