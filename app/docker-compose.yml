@@ -26,7 +26,7 @@ services:
       - DS_TEST_PASSWORD
       - DS_STATS_LOGIN
       - DS_STATS_PASSWORD
-      - DS_NVIDIA
+      - DS_NVCODEC
       - CONTAINER_STDERR_FILE=$DS_CONTAINER_STDERR_FILE
       - GST_DEBUG
     ports:
