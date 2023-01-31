@@ -214,7 +214,9 @@ The previous layout (having folders under `app` being used as volume sources) pr
 
 ### Enable experiment build
 
-Create the `docker-compose.override.yml` file by copying `docker-compose.override-example.yml`: it specifies how to build the image needed for the experiment service (the build option has not been defined in `docker-compose.yml`).
+Create the `docker-compose.override.yml` file by copying `docker-compose.override-example.yml`: it specifies how to build the image needed for a default experiment service (the build option has not been defined in `docker-compose.yml`).
+
+An alternative would be to define an `image:` property (in `docker-compose.override.yml`) to pull a published image.
 
 ### Environment variables
 
