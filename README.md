@@ -321,6 +321,9 @@ appctl up ducksoup
 appctl up monitoring
 appctl up experiment
 
+# if you want to enable nvidia metrics in monitoring
+appctl up nvidia
+
 # stop profiles
 appctl stop <profile_name>
 
