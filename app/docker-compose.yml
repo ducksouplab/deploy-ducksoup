@@ -27,6 +27,7 @@ services:
       - DS_STATS_LOGIN
       - DS_STATS_PASSWORD
       - DS_NVCODEC
+      - DS_FORCE_OVERLAY
       - CONTAINER_STDERR_FILE=$DS_CONTAINER_STDERR_FILE
       - GST_DEBUG
     ports:

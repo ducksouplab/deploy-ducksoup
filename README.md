@@ -255,6 +255,7 @@ Here are the environment variables you may edit, grouped by service:
     - `DS_STATS_LOGIN`: basic auth login for DuckSoup stats pages
     - `DS_STATS_PASSWORD`: basic auth password for DuckSoup stats pages
     - `DS_NVCODEC`: use NVIDIA hardware for H264 encoding and decoding (enable only if GPU available on host)
+    - `DS_FORCE_OVERLAY`: display a time overlay in videos (recorded)
     - `GST_DEBUG`: control GStreamer debug output format as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c)
     - `DS_CONTAINER_STDERR_FILE` (not of interest to DuckSoup itself, but has an effect on its container's `CMD`): write Stderr to the specified file
 - `postgres` service:
