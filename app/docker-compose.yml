@@ -17,16 +17,17 @@ services:
       - DS_PORT
       - DS_WEB_PREFIX
       - DS_ORIGINS
-      - DS_GEN_TWCC
-      - DS_GST_ENABLE_TRACKING
-      - DS_LOG_STDOUT
-      - DS_LOG_FILE
-      - DS_LOG_LEVEL
       - DS_TEST_LOGIN
       - DS_TEST_PASSWORD
       - DS_STATS_LOGIN
       - DS_STATS_PASSWORD
       - DS_NVCODEC
+      - DS_GEN_TWCC
+      - DS_GCC
+      - DS_GST_ENABLE_TRACKING
+      - DS_LOG_STDOUT
+      - DS_LOG_FILE
+      - DS_LOG_LEVEL
       - DS_FORCE_OVERLAY
       - CONTAINER_STDERR_FILE=$DS_CONTAINER_STDERR_FILE
       - GST_DEBUG
