@@ -3,7 +3,7 @@ import os
 import random
 import string
 
-DUCKSOUP_URL = os.getenv("DUCKSOUP_URL", "http://localhost:8100/")
+DUCKSOUP_URL = os.getenv("OTREE_DUCKSOUP_URL", "http://localhost:8100/")
 DUCKSOUP_JS_URL = DUCKSOUP_URL + "scripts/lib/ducksoup.js"
 
 VIDEO_DURATION = 20 # seconds
