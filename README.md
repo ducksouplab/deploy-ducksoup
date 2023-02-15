@@ -414,7 +414,7 @@ appctl up ducksoup
 
 For each service listed below, two example links are given:
 
-- if run on your developer machine, refer to the port declared in the `.env` file, for instance http://localhost:8080/ for the experiment
+- if run on your developer machine, refer to the port declared in the `.env` file, for instance http://localhost:8180/ for the experiment
 - if run on a server accessible at `ducksoup-host.com` and behind a nginx `location` as described [previously](#host-configuration), the link would be https://ducksoup-host.com/experiment
 
 ### DuckSoup
@@ -434,7 +434,7 @@ Please refer to [oTree documentation](https://otree.readthedocs.io/en/latest/ind
 
 The demo is available at:
 
-- developer machine: http://localhost:8080/
+- developer machine: http://localhost:8180/
 - server: https://ducksoup-host.com/experiment/
 
 Authenticate with the login `admin` and the password defined as `OTREE_ADMIN_PASSWORD` in `.env`, then:

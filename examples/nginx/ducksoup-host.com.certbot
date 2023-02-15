@@ -1,5 +1,5 @@
 upstream experiment {
-    server localhost:8080;
+    server localhost:8180;
 }
 
 upstream ducksoup {
