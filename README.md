@@ -34,7 +34,7 @@ The process of installing and running DuckSoup can be broken down as:
 This documentation showcases the deployment of an app made of three parts/profiles:
 
 - [DuckSoup](https://github.com/ducksouplab/ducksoup), a videoconferencing tool for online social experiments
-- a minimal experiment based on [oTree](https://otree.readthedocs.io/en/latest/) that uses DuckSoup
+- a minimal experiment based on [oTree](https://otree.readthedocs.io/en/latest/) that uses DuckSoup (and a service called *mastok* that manages users before arrival in the experiment)
 - a server monitoring tool based on Grafana and Prometheus
 
 Please note that DuckSoup has no dependency on oTree: DuckSoup is called client-side by the experiment and thus has no prerequesites regarding the technologies involved to develop the experiment server-side. This example experiment is only provided to illustrate the deployment of a full app. 
@@ -267,6 +267,14 @@ Here are the environment variables you may edit, grouped by service:
     - `OTREE_ADMIN_PASSWORD` password of the oTree admin web interface
     - `OTREE_DUCKSOUP_URL` DuckSoup root URL, for instance `https://ducksoup-host/` (with trailing slash)
     - these variables define DuckSoup interaction configuration as requested by oTree for all its experiments: `OTREE_DUCKSOUP_REQUEST_GPU` (defaults to false), `OTREE_DUCKSOUP_FRAMERATE` (deffault to 30), `OTREE_DUCKSOUP_WIDTH` (defaults to 800), `OTREE_DUCKSOUP_HEIGHT` (defaults to 600), `OTREE_DUCKSOUP_FORMAT` (defaults to H264, VP8 being the only other option)
+- `mastok` service:
+    - `MASTOK_PORT` to set the port Mastok listens to
+    - `MASTOK_ORIGIN` to set what origin is trusted for WebSocket communication. If Mastok is running on port 8190 on localhost, but is served (thanks to a proxy) and reachable at https://mymastok.com, the valid `MASTOK_ORIGIN` value is `https://mymastok.com`
+    - `MASTOK_WEB_PREFIX` if Mastok is served under a prefix path
+    - `MASTOK_LOGIN` and `MASTOK_PASSWORD` to define login/password for HTTP basic authentication
+    - `MASTOK_DATABASE_URL` to connect to the database 
+    - `MASTOK_OTREE_URL` to reach oTree
+    - `MASTOK_OTREE_REST_KEY` to authenticate to oTree API
 - `grafana` service:
     - `GF_PORT` grafana running port as defined in nginx host proxy
     - `GF_PATH` grafana path prefix as defined in nginx host (set to `/grafana` if entry point is `https://ducksoup-host/grafana`)
@@ -279,7 +287,7 @@ Here are the environment variables you may edit, grouped by service:
 Docker Compose is used to run and manage (for instance update and automatically restart) the app. The app is broken down as `profiles` in `docker-compose.yml`:
 
 - the `ducksoup` profile defines DuckSoup
-- the `experiment` profile defines an example web app that uses DuckSoup (client-side) and relies on a PostgreSQL database (server-side)
+- the `experiment` profile defines 3 services: `mastok` a service that routes users to `experiment`, an example web app that uses DuckSoup (client-side) and relies on a `db`, a PostgreSQL database
 - the `monitoring` profile defines a monitoring utility that relies on Grafana and Prometheus, to display information about the server state
 - the `nvidia` profile extends the monitoring utility with GPU data exporter
 
@@ -427,6 +435,15 @@ A mirror test page is available at:
 - server: https://ducksoup-host.com/test/mirror/
 
 When asked to authenticate (HTTP basic auth), use the credentials defined in `.env`: `DS_TEST_LOGIN` and `DS_TEST_PASSWORD`.
+
+### Mastok
+
+Code to be open soon.
+
+The demo is available at:
+
+- developer machine: http://localhost:8190/
+- server: https://ducksoup-host.com/mastok/
 
 ### Experiment
 

@@ -85,6 +85,32 @@ services:
       options:
           max-file: "100"
           max-size: "200k"
+  mastok:
+    profiles:
+      - experiment
+    depends_on: 
+      - db
+      - experiment
+    image: ducksouplab/ducksoup:latest
+    restart: unless-stopped
+    environment:
+      - MASTOK_PORT
+      - MASTOK_ORIGIN
+      - MASTOK_WEB_PREFIX
+      - MASTOK_LOGIN
+      - MASTOK_PASSWORD
+      - MASTOK_DATABASE_URL
+      - MASTOK_OTREE_URL
+      - MASTOK_OTREE_REST_KEY
+    ports:
+      - "$MASTOK_PORT:$MASTOK_PORT"
+    networks:
+      - db_network
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "100"
+          max-size: "200k"
   dcgm:
     profiles:
       - nvidia
