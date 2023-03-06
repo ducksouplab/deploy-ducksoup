@@ -14,25 +14,25 @@ services:
     restart: unless-stopped
     user: $DOCKER_UID:$DOCKER_GID
     environment:
-      - DS_PORT
-      - DS_WEB_PREFIX
-      - DS_ORIGINS
-      - DS_TEST_LOGIN
-      - DS_TEST_PASSWORD
-      - DS_STATS_LOGIN
-      - DS_STATS_PASSWORD
-      - DS_NVCODEC
-      - DS_GEN_TWCC
-      - DS_GCC
-      - DS_GST_ENABLE_TRACKING
-      - DS_LOG_STDOUT
-      - DS_LOG_FILE
-      - DS_LOG_LEVEL
-      - DS_FORCE_OVERLAY
-      - CONTAINER_STDERR_FILE=$DS_CONTAINER_STDERR_FILE
+      - DUCKSOUP_PORT
+      - DUCKSOUP_WEB_PREFIX
+      - DUCKSOUP_PUBLIC_IP
+      - DUCKSOUP_ALLOWED_WS_ORIGINS
+      - DUCKSOUP_TEST_LOGIN
+      - DUCKSOUP_TEST_PASSWORD
+      - DUCKSOUP_NVCODEC
+      - DUCKSOUP_GENERATE_TWCC
+      - DUCKSOUP_GCC
+      - DUCKSOUP_GST_TRACKING
+      - DUCKSOUP_LOG_STDOUT
+      - DUCKSOUP_LOG_FILE
+      - DUCKSOUP_LOG_LEVEL
+      - DUCKSOUP_FORCE_OVERLAY
+      - DUCKSOUP_ICE_SERVERS
+      - CONTAINER_STDERR_FILE=$DUCKSOUP_CONTAINER_STDERR_FILE
       - GST_DEBUG
     ports:
-      - $DS_PORT:$DS_PORT
+      - $DUCKSOUP_PORT:$DUCKSOUP_PORT
     volumes:
       - ducksoup-config:/app/config
       - ./data/ducksoup:/app/data
