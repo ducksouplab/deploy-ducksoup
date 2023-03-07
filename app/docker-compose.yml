@@ -31,6 +31,7 @@ services:
       - DUCKSOUP_ICE_SERVERS
       - CONTAINER_STDERR_FILE=$DUCKSOUP_CONTAINER_STDERR_FILE
       - GST_DEBUG
+      - PION_LOG_TRACE
     ports:
       - $DUCKSOUP_PORT:$DUCKSOUP_PORT
     volumes:
