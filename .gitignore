@@ -8,3 +8,4 @@ app/data
 app/log
 app/plugins
 docker-compose.override.yml
+.local

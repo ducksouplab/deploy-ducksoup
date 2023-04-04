@@ -42,24 +42,24 @@ services:
     logging:
       driver: "json-file"
       options:
-          max-file: "100"
-          max-size: "200k"
+        max-file: "100"
+        max-size: "200k"
   db:
     profiles:
       - experiment
     user: $DOCKER_UID:$DOCKER_GID
-    image: postgres:13
+    image: postgres:15
     restart: unless-stopped
     environment:
+      - POSTGRES_USER
       - POSTGRES_PASSWORD
-      - POSTGRES_DB=experiment
-      - POSTGRES_USER=experiment
     volumes:
       - ./data/db:/var/lib/postgresql/data
       - /etc/passwd:/etc/passwd:ro
+      - ./config/db/init.sh:/docker-entrypoint-initdb.d/init.sh
     networks:
       - db_network
-  experiment:
+  otree:
     profiles:
       - experiment
     depends_on: 
@@ -68,6 +68,7 @@ services:
     environment:
       - DATABASE_URL=$OTREE_DATABASE_URL
       - PORT=$OTREE_PORT
+      - OTREE_REST_KEY
       - OTREE_ADMIN_PASSWORD
       - OTREE_PRODUCTION=1
       - OTREE_AUTH_LEVEL=STUDY
@@ -91,8 +92,8 @@ services:
       - experiment
     depends_on: 
       - db
-      - experiment
-    image: ducksouplab/ducksoup:latest
+      - otree
+    image: ducksouplab/mastok:latest
     restart: unless-stopped
     environment:
       - MASTOK_PORT

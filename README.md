@@ -104,7 +104,7 @@ Declare a new nginx server block as `/etc/nginx/sites-available/ducksoup` from t
 
 - the `upstream` servers declare services running on the host (matching their ports with the ones defined in `docker-compose.yml`)
 
-- the `location` directives bind path prefixes to corresponding services (for instance binds `/experiment` to the oTree application) and enable/configure a few options (for instance WebSockets)
+- the `location` directives bind path prefixes to corresponding services (for instance binds `/otree` to the oTree application) and enable/configure a few options (for instance WebSockets)
 
 - about the proxy timeout settings: by default WebSockets are closed after a default timeout of 1 minute if no message was exchanged during this period (resulting in DuckSoup user sessions to be terminated).
 
@@ -208,6 +208,8 @@ chown -R deploy:deploy config data log plugins
 chmod 770 -R data log
 ```
 
+Old?: the bound `data/db` volume is chmoded as 700 due to https://github.com/docker-library/postgres/blob/master/docker-entrypoint.sh#L39
+
 ### Changing volume host folders
 
 The previous layout (having folders under `app` being used as volume sources) provides with a simple working example. You may want to change this setup (check the [documentation](https://docs.docker.com/storage/volumes/) for more information) and use other locations, for instance under host-mounted hard drives. If you do, prefer overriding the default setup in `docker-compose.override.yml`.
@@ -262,7 +264,7 @@ Here are the environment variables you may edit, grouped by service:
     - `DUCKSOUP_CONTAINER_STDERR_FILE` (not of interest to DuckSoup itself, but has an effect on its container's `CMD`) writes Stderr to the specified file
 - `postgres` service:
     - `POSTGRES_PASSWORD` PostgreSQL password also known by the experiment service in `OTREE_DATABASE_URL`
-- `experiment` service:
+- `otree` service:
     - `OTREE_PORT` oTree experiment running port as defined in nginx host proxy
     - `OTREE_DATABASE_URL` PostgreSQL connection URL
     - `OTREE_ADMIN_PASSWORD` password of the oTree admin web interface
@@ -288,7 +290,7 @@ Here are the environment variables you may edit, grouped by service:
 Docker Compose is used to run and manage (for instance update and automatically restart) the app. The app is broken down as `profiles` in `docker-compose.yml`:
 
 - the `ducksoup` profile defines DuckSoup
-- the `experiment` profile defines 3 services: `mastok` a service that routes users to `experiment`, an example web app that uses DuckSoup (client-side) and relies on a `db`, a PostgreSQL database
+- the `experiment` profile defines 3 services: `mastok` a service that routes users to `otree`, an example web app that uses DuckSoup (client-side) and relies on a `db`, a PostgreSQL database
 - the `monitoring` profile defines a monitoring utility that relies on Grafana and Prometheus, to display information about the server state
 - the `nvidia` profile extends the monitoring utility with GPU data exporter
 
@@ -400,7 +402,7 @@ Indeed this folder is mounted as `/app/plugins` in the container, which is liste
 
 Some services are based on prebuilt/published Docker images (like `ducksouplab/ducksoup:latest` or `postgres:13`) and can only get latest developments when images are updated.
 
-The experiment example image is built locally from the `examples/experiment/Dockerfile` each time you `appctl up experiment` (but it won't be rebuilt by `appctl reload experiment`).
+The experiment example image is built locally from the `examples/otree/Dockerfile` each time you `appctl up experiment` (but it won't be rebuilt by `appctl reload experiment`).
 
 It is also possible to build an image by specifying the git repository and branch of a project (check `examples/docker-compose.ds-from-source.yml` to see how). In that case, push first to the aforementioned branch and repository, before rebuilding the image (which is done by `appctl up`). For private git repository, check the appropriate documentation (on github or gitlab for instance) about how to authenticate the `deploy` user to this service, typically by adding and using a SSH key when pulling (the pull being triggered silently by Docker Compose).
 
@@ -423,8 +425,8 @@ appctl up ducksoup
 
 For each service listed below, two example links are given:
 
-- if run on your developer machine, refer to the port declared in the `.env` file, for instance http://localhost:8180/ for the experiment
-- if run on a server accessible at `ducksoup-host.com` and behind a nginx `location` as described [previously](#host-configuration), the link would be https://ducksoup-host.com/experiment
+- if run on your developer machine, refer to the port declared in the `.env` file, for instance http://localhost:8180/ for otree
+- if run on a server accessible at `ducksoup-host.com` and behind a nginx `location` as described [previously](#host-configuration), the link would be https://ducksoup-host.com/otree
 
 ### DuckSoup
 
@@ -453,13 +455,13 @@ Please refer to [oTree documentation](https://otree.readthedocs.io/en/latest/ind
 The demo is available at:
 
 - developer machine: http://localhost:8180/
-- server: https://ducksoup-host.com/experiment/
+- server: https://ducksoup-host.com/otree/
 
 Authenticate with the login `admin` and the password defined as `OTREE_ADMIN_PASSWORD` in `.env`, then:
 
 - click `mirror` under `Demo`
 - click the available singe-use link (it's possible to create new links with `New` in the tab bar)
-- experiment an app made of three steps: an introductory page that collects your name, a page embedding DuckSoup with a pitch audio effect that redirects automatically after 20 seconds to an ending page displaying your name
+- otree an app made of three steps: an introductory page that collects your name, a page embedding DuckSoup with a pitch audio effect that redirects automatically after 20 seconds to an ending page displaying your name
 
 ### Grafana
 
@@ -522,10 +524,6 @@ docker build -f examples/docker/Dockerfile.inspect -t inspect:latest .
 docker run --rm -it --add-host=host:host-gateway inspect:latest sh
 docker run --rm -it --network=host inspect:latest sh
 ```
-
-### Note on PostgreSQL
-
-The bound `data/db` volume is chmoded as 700 due to https://github.com/docker-library/postgres/blob/master/10/docker-entrypoint.sh#L36
 
 ### Services particularities
 

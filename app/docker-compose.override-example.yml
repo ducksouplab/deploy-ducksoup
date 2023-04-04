@@ -1,6 +1,6 @@
 version: "3.9"
 
 services:
-  experiment:
+  otree:
     build:
-      context: ../examples/experiment
+      context: ../examples/otree

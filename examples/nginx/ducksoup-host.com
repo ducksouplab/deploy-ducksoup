@@ -1,4 +1,4 @@
-upstream experiment {
+upstream otree {
     server localhost:8180;
 }
 
@@ -42,9 +42,9 @@ server {
         proxy_set_header Connection "Upgrade";
     }
 
-    location /experiment {
-        rewrite /experiment/(.*) /$1  break; # remove path prefix before otree
-        proxy_pass "http://experiment";
+    location /otree {
+        rewrite /otree/(.*) /$1  break; # remove path prefix before otree
+        proxy_pass "http://otree";
         proxy_set_header Host $host;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
