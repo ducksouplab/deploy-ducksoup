@@ -102,8 +102,9 @@ services:
       - MASTOK_LOGIN
       - MASTOK_PASSWORD
       - MASTOK_DATABASE_URL
-      - MASTOK_OTREE_URL
-      - MASTOK_OTREE_REST_KEY
+      - MASTOK_OTREE_PUBLIC_URL
+      - MASTOK_OTREE_API_URL
+      - MASTOK_OTREE_API_KEY
     ports:
       - "$MASTOK_PORT:$MASTOK_PORT"
     networks:
