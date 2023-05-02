@@ -465,6 +465,10 @@ Authenticate with the login `admin` and the password defined as `OTREE_ADMIN_PAS
 - click the available singe-use link (it's possible to create new links with `New` in the tab bar)
 - otree an app made of three steps: an introductory page that collects your name, a page embedding DuckSoup with a pitch audio effect that redirects automatically after 20 seconds to an ending page displaying your name
 
+Gotcha regarding database migration:
+
+The column `_created` on the table `otree_session` should be of type integer (and not timestamp without a timezone), if it happens, one solution could be to `otree resetdb` (but there will be data loss). Leaving a timestamp type for `_created` will prevent mastok from creating otree sessions through its API. This type seems to be dependent on oTree version, if not 5.10.3, this should be checked.
+
 ### Grafana
 
 Please refer to [Grafana documentation](https://grafana.com/docs/).
