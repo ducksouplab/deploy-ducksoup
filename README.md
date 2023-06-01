@@ -259,6 +259,7 @@ Here are the environment variables you may edit, grouped by service:
     - `DUCKSOUP_LOG_FILE` declares a file to write logs to (fails silently if file can't be opened) (file path from container viewpoint)
     - `DUCKSOUP_LOG_LEVEL` (defaults to 2) selects log level display (see next section)
     - `DUCKSOUP_FORCE_OVERLAY` displays a time overlay in videos (recorded)
+    - `DUCKSOUP_NO_RECORDING` disables audio/video file recordings
     - `DUCKSOUP_ICE_SERVERS=false` (defaults to `stun:stun.l.google.com:19302`) declares comma separated allowed STUN servers to be used to find ICE candidates (or false to disable STUN)
     - `GST_DEBUG` controls GStreamer debug output format as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c)
     - `PION_LOG_TRACE` (unset by default) logs pion debug messages (see [more](https://github.com/pion/webrtc/wiki/Debugging-WebRTC))
