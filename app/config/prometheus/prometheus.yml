@@ -7,4 +7,4 @@ scrape_configs:
   - targets: ['host:9100']
 - job_name: dcgm
   static_configs:
-  - targets: ['dcgm:9400']
+  - targets: ['host:9400']

@@ -139,12 +139,13 @@ sudo systemctl reload nginx
 
 5. Monitoring and firewall
 
-If you are using the `monitoring` profile, one of its services (`prometheus`) needs to access the host (since it regularly calls `node_exporter` which in turn needs to be run on the host network). If you use a firewall, networking from containers to host may be blocked and thus monitoring won't work (`prometheus` won't be able to call `node_exporter` on the host port 9100).
+If you are using the `monitoring` profile, one of its services (`prometheus`) needs to access the host (since it regularly calls `node_exporter` which in turn needs to be run on the host network). If you use a firewall, networking from containers to host may be blocked and thus monitoring won't work (`prometheus` won't be able to call `node_exporter` on the host port 9100 or `dcgm_exporter` on the host port 9400).
 
-Here is an example to relax the firewall (ufw) to allow traffic coming from a given subnet (see configuration declared in `examples/docker/daemon.json`) where `prometheus` is run, towards port 9100 on the host:
+Here is an example to relax the firewall (ufw) to allow traffic coming from a given subnet (see configuration declared in `examples/docker/daemon.json`) where `prometheus` is run, towards ports 9100 and 9400 on the host:
 
 ```
 sudo ufw allow from 172.80.0.1/16 to any port 9100
+sudo ufw allow from 172.80.0.1/16 to any port 9400
 ```
 
 6. Rotating logs
