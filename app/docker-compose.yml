@@ -151,6 +151,7 @@ services:
     user: $DOCKER_UID:$DOCKER_GID
     depends_on: 
       - node_exporter
+      - dcgm_exporter
     image: prom/prometheus
     restart: unless-stopped
     ports:
