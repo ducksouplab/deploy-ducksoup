@@ -273,6 +273,7 @@ Here are the environment variables you may edit, grouped by service:
     - `OTREE_DATABASE_URL` PostgreSQL connection URL
     - `OTREE_ADMIN_PASSWORD` password of the oTree admin web interface
     - `OTREE_DUCKSOUP_URL` DuckSoup root URL, for instance `https://ducksoup-host/` (with trailing slash)
+    - `OTREE_DUCKSOUP_FRONTEND_VERSION` JS/CSS ducksoup assets version
     - these variables define DuckSoup interaction configuration as requested by oTree for all its experiments: `OTREE_DUCKSOUP_REQUEST_GPU` (defaults to false), `OTREE_DUCKSOUP_FRAMERATE` (deffault to 30), `OTREE_DUCKSOUP_WIDTH` (defaults to 800), `OTREE_DUCKSOUP_HEIGHT` (defaults to 600), `OTREE_DUCKSOUP_FORMAT` (defaults to H264, VP8 being the only other option)
 - `mastok` service:
     - `MASTOK_PORT` to set the port Mastok listens to
