@@ -33,9 +33,9 @@ The process of installing and running DuckSoup can be broken down as:
 
 This documentation showcases the deployment of an app made of three parts/profiles:
 
-- [DuckSoup](https://github.com/ducksouplab/ducksoup), a videoconferencing tool for online social experiments
-- a minimal experiment based on [oTree](https://otree.readthedocs.io/en/latest/) that uses DuckSoup (and a service called *mastok* that manages users before arrival in the experiment)
-- a server monitoring tool based on Grafana and Prometheus
+- [DuckSoup](https://github.com/ducksouplab/ducksoup), a videoconferencing tool for online social experiments (profile `ducksoup`)
+- a minimal experiment based on [oTree](https://otree.readthedocs.io/en/latest/) that uses DuckSoup (and a service called *mastok* that manages users before arrival in the experiment) (profile `social`)
+- a server monitoring tool based on Grafana and Prometheus (profile `monitoring`)
 
 Please note that DuckSoup has no dependency on oTree: DuckSoup is called client-side by the experiment and thus has no prerequesites regarding the technologies involved to develop the experiment server-side. This example experiment is only provided to illustrate the deployment of a full app. 
 
@@ -297,9 +297,8 @@ Here are the environment variables you may edit, grouped by service:
 Docker Compose is used to run and manage (for instance update and automatically restart) the app. The app is broken down as `profiles` in `docker-compose.yml`:
 
 - the `ducksoup` profile defines DuckSoup
-- the `experiment` profile defines 3 services: `mastok` a service that routes users to `otree`, an example web app that uses DuckSoup (client-side) and relies on a `db`, a PostgreSQL database
+- the `social` profile defines 3 services: `mastok` a service that routes users to `otree`, an example web app that uses DuckSoup (client-side) and relies on a `db`, a PostgreSQL database
 - the `monitoring` profile defines a monitoring utility that relies on Grafana and Prometheus, to display information about the server state
-- the `nvidia` profile extends the monitoring utility with GPU data exporter
 
 You can run profiles independently from each other: you may for instance run only DuckSoup and the monitoring service if the experiment is hosted on another server.
 

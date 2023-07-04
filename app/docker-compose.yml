@@ -51,7 +51,7 @@ services:
         max-size: "200k"
   db:
     profiles:
-      - experiment
+      - social
     user: $DOCKER_UID:$DOCKER_GID
     image: postgres:15
     restart: unless-stopped
@@ -64,9 +64,9 @@ services:
       - ./config/db/init.sh:/docker-entrypoint-initdb.d/init.sh
     networks:
       - db_network
-  otree:
+  experiment:
     profiles:
-      - experiment
+      - social
     depends_on: 
       - db
     restart: unless-stopped
@@ -95,10 +95,10 @@ services:
           max-size: "200k"
   mastok:
     profiles:
-      - experiment
+      - social
     depends_on: 
       - db
-      - otree
+      - experiment
     image: ducksouplab/mastok:latest
     restart: unless-stopped
     environment:
