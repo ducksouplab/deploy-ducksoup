@@ -280,6 +280,7 @@ Here are the environment variables you may edit, grouped by service:
     - `MASTOK_ORIGIN` to set what origin is trusted for WebSocket communication. If Mastok is running on port 8190 on localhost, but is served (thanks to a proxy) and reachable at https://mymastok.com, the valid `MASTOK_ORIGIN` value is `https://mymastok.com`
     - `MASTOK_WEB_PREFIX` if Mastok is served under a prefix path
     - `MASTOK_LOGIN` and `MASTOK_PASSWORD` to define login/password for HTTP basic authentication
+    - `MASTOK_DISABLE_LIVE_REDIRECT` (defaults to false) to prevent mastok for redirecting same participant (= same JS fingerprint) to a session they have joined if it is still running
     - `MASTOK_DATABASE_URL` to connect to the database 
     - `MASTOK_OTREE_PUBLIC_URL` (like `http://host.com/otree`) to reach oTree public pages
     - `MASTOK_OTREE_API_URL` (like `http://localhost:8180`) to reach oTree REST API
