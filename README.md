@@ -265,6 +265,7 @@ Here are the environment variables you may edit, grouped by service:
     - `DUCKSOUP_ICE_SERVERS=false` (defaults to `stun:stun.l.google.com:19302`) declares comma separated allowed STUN servers to be used to find ICE candidates (or false to disable STUN)
     - `GST_DEBUG` controls GStreamer debug output format as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c), ` GST_TRACERS` and `GST_DEBUG_FILE` are also exposed
     - `PION_LOG_TRACE` (unset by default) logs pion debug messages (see [more](https://github.com/pion/webrtc/wiki/Debugging-WebRTC))
+    - `DUCKSOUP_CONTAINER_STDOUT_FILE` (not of interest to DuckSoup itself, but has an effect on its container's `CMD`) writes Stdout to the specified file
     - `DUCKSOUP_CONTAINER_STDERR_FILE` (not of interest to DuckSoup itself, but has an effect on its container's `CMD`) writes Stderr to the specified file
 - `postgres` service:
     - `POSTGRES_PASSWORD` PostgreSQL password also known by the experiment service in `OTREE_DATABASE_URL`

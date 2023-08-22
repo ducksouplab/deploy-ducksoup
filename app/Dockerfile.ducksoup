@@ -27,4 +27,4 @@ COPY --chown=${UID}:${GID} --from=full /app/config ./config
 
 # write date and then append err to file if CONTAINER_STDERR_FILE exists
 SHELL ["/bin/bash", "-c"]
-CMD if [[ -z "${CONTAINER_STDERR_FILE}" ]]; then ./ducksoup; else (date 1>&2; ./ducksoup) 2>>${CONTAINER_STDERR_FILE}; fi
+CMD if [[ -z "${CONTAINER_STDERR_FILE}" ] && [ -z "${CONTAINER_STDOUT_FILE}" ]]; then ./ducksoup; else (date 1>&2; ./ducksoup) > {CONTAINER_STDOUT_FILE} 2> ${CONTAINER_STDERR_FILE}; fi
