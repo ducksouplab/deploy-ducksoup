@@ -18,6 +18,9 @@ services:
       - DUCKSOUP_WEB_PREFIX
       - DUCKSOUP_PUBLIC_IP
       - DUCKSOUP_ALLOWED_WS_ORIGINS
+      - DUCKSOUP_TURN_ADDRESS
+      - DUCKSOUP_TURN_PORT
+      - DUCKSOUP_TURN_PASSWORD
       - DUCKSOUP_TEST_LOGIN
       - DUCKSOUP_TEST_PASSWORD
       - DUCKSOUP_NVCODEC
@@ -40,6 +43,7 @@ services:
       - PION_LOG_TRACE
     ports:
       - $DUCKSOUP_PORT:$DUCKSOUP_PORT
+      - $DUCKSOUP_TURN_PORT:$DUCKSOUP_TURN_PORT
     volumes:
       - ducksoup-config:/app/config
       - ./data/ducksoup:/app/data

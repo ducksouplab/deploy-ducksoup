@@ -247,6 +247,7 @@ Here are the environment variables you may edit, grouped by service:
         - `DUCKSOUP_WEB_PREFIX=/path` if  DuckSoup is available at `https://ducksoup-host/path` (the nginx configuration would then proxy DuckSoup in a `location /path {...}` block)
     - `DUCKSOUP_PUBLIC_IP` if set, will be used to add a Host candidate during signaling (not necessary if ICE servers are used)
     - `DUCKSOUP_ALLOWED_WS_ORIGINS`: origins trusted by DuckSoup (you need to add DuckSoup itself, for instance `https://ducksoup-host`, if you want to use test pages like https://ducksoup-host/test/mirror/, or other origins if experiments are served from other domains)
+    - `DUCKSOUP_TURN_ADDRESS`, `DUCKSOUP_TURN_PORT` and `DUCKSOUP_TURN_PASSWORD` to configure DuckSoup embedded TURN server
     - `DUCKSOUP_TEST_LOGIN`: basic auth login for DuckSoup test pages
     - `DUCKSOUP_TEST_PASSWORD`: basic auth password for DuckSoup test pages
     - `DUCKSOUP_NVCODEC`: use NVIDIA hardware for H264 encoding and decoding (only if GPU available on host)
