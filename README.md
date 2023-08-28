@@ -189,7 +189,7 @@ Since deployment and running is managed by Docker Compose, most of the configura
 The `app` folder contains the following files:
 
 - a base `docker-compose.yml` that declares and configures services; you may edit this file or prefer using an override (see next bullet) to fit your needs
-- `docker-compose.override-example.yml` can be used as an example to create a `docker-compose.override.yml` (to override existing services or even declare new ones, without editing `docker-compose.yml`)
+- `docker-compose.override-example.*.yml` can be used as an example to create a `docker-compose.override.yml` (to override existing services or even declare new ones, without editing `docker-compose.yml`)
 - `env.example` can be used as an example to create a `.env` file that will be automatically loaded by Docker Compose to define environment variables (made available to `docker compose` commands, and also forwarded to containers depending the `environment:` section of each service)
 - `appctl` is a helper script that shortens a few frequent Docker Compose commands
 
@@ -217,7 +217,7 @@ The previous layout (having folders under `app` being used as volume sources) pr
 
 ### Enable experiment build
 
-Create the `docker-compose.override.yml` file by copying `docker-compose.override-example.yml`: it specifies how to build the image needed for a default experiment service (the build option has not been defined in `docker-compose.yml`).
+Create the `docker-compose.override.yml` file by copying one of `docker-compose.override-example.*.yml`: it specifies how to build the image needed for a default experiment service (the build option has not been defined in `docker-compose.yml`).
 
 An alternative would be to define an `image:` property (in `docker-compose.override.yml`) to pull a published image.
 
@@ -396,7 +396,7 @@ appctl up ducksoup
 
 Ensure you've followed [Optional: installation for NVIDIA GPU](#optional-installation-for-nvidia-gpu), then two actions are needed:
 
-- enable the GPU capability in Docker context: copy the contents of `examples/docker-compose.override-gpu-example.yml` in `app/docker-compose.override.yml` (to be created if not already)
+- enable the GPU capability in Docker context: copy the contents of `examples/docker-compose.override-example.gpu.yml` in `app/docker-compose.override.yml` (to be created if not already)
 - start DuckSoup with `DUCKSOUP_NVCODEC=true` in the `.env` file (see [Environment variables](#environment-variables))
 
 ### Optional: GStreamer plugins

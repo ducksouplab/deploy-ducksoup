@@ -2,7 +2,6 @@ version: "3.9"
 
 services:
   ducksoup:
-    network_mode: host
     deploy:
       resources:
         reservations:
@@ -10,6 +9,3 @@ services:
             - capabilities: [gpu]
               driver: nvidia
               count: all
-  experiment:
-    build:
-      context: ../examples/otree
