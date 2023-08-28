@@ -41,9 +41,6 @@ services:
       - GST_DEBUG_FILE
       - GST_TRACERS
       - PION_LOG_TRACE
-    ports:
-      - $DUCKSOUP_PORT:$DUCKSOUP_PORT
-      - ${DUCKSOUP_TURN_PORT:-3478}:${DUCKSOUP_TURN_PORT:-3478}
     volumes:
       - ducksoup-config:/app/config
       - ./data/ducksoup:/app/data
