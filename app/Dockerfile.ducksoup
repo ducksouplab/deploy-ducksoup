@@ -2,7 +2,7 @@ FROM ducksouplab/ducksoup:latest AS full
 
 # this lightweight image is used to set ownerships on named volume mapped to config
 # using $DOCKER_* variables in .env file as user:group value
-FROM ducksouplab/debian-gstreamer:deb11-cuda12.2-gst1.22.5 AS prod
+FROM ducksouplab/debian-gstreamer:deb11-cuda12.2-gst1.22.6 AS prod
 
 RUN apt-get update && apt-get upgrade -y
 
