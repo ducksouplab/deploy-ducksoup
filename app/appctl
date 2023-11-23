@@ -16,7 +16,9 @@ elif [ "$1" = "pull" ]; then
 elif [ "$1" = "sh" ]; then
     cmd="docker compose exec $2 sh"
 elif [ "$1" = "reset-config" ] && [ "$2" = "ducksoup" ]; then
-    cmd="rm -rI config/ducksoup/*"
+    cmd="rm -rf config/ducksoup/*"
+elif [ "$1" = "reup" ] && [ "$2" = "ducksoup" ]; then
+    cmd="rm -rf config/ducksoup/* && docker compose --profile ducksoup up -d --build --force-recreate"
 fi
 
 if [ "$cmd" ]; then
