@@ -263,6 +263,7 @@ Here are the environment variables you may edit, grouped by service:
         - if neither are set, logs are written to Stderr 
     - `DUCKSOUP_LOG_FILE` declares a file to write logs to (fails silently if file can't be opened) (file path from container viewpoint)
     - `DUCKSOUP_LOG_LEVEL` (defaults to 2) selects log level display (see next section)
+    - `DUCKSOUP_INTERCEPT_GST_LOGS` (defaults to false) disable GStreamer default logger to intercept logs and put them in the relevant interaction logs if possible
     - `DUCKSOUP_FORCE_OVERLAY` displays a time overlay in videos (recorded)
     - `DUCKSOUP_NO_RECORDING` disables audio/video file recordings
     - `DUCKSOUP_STUN_SERVER_URLS=false` (defaults to `stun:stun.l.google.com:19302`) declares comma separated allowed STUN server URLs to be used to find ICE candidates (or false to disable STUN)
