@@ -33,9 +33,9 @@ The process of installing and running DuckSoup can be broken down as:
 
 This documentation showcases the deployment of an app made of three parts/profiles:
 
-- [DuckSoup](https://github.com/ducksouplab/ducksoup), a videoconferencing tool for online social experiments
-- a minimal experiment based on [oTree](https://otree.readthedocs.io/en/latest/) that uses DuckSoup (and a service called *mastok* that manages users before arrival in the experiment)
-- a server monitoring tool based on Grafana and Prometheus
+- [DuckSoup](https://github.com/ducksouplab/ducksoup), a videoconferencing tool for online social experiments (profile `ducksoup`)
+- a minimal experiment based on [oTree](https://otree.readthedocs.io/en/latest/) that uses DuckSoup (and a service called *mastok* that manages users before arrival in the experiment) (profile `social`)
+- a server monitoring tool based on Grafana and Prometheus (profile `monitoring`)
 
 Please note that DuckSoup has no dependency on oTree: DuckSoup is called client-side by the experiment and thus has no prerequesites regarding the technologies involved to develop the experiment server-side. This example experiment is only provided to illustrate the deployment of a full app. 
 
@@ -139,12 +139,13 @@ sudo systemctl reload nginx
 
 5. Monitoring and firewall
 
-If you are using the `monitoring` profile, one of its services (`prometheus`) needs to access the host (since it regularly calls `node_exporter` which in turn needs to be run on the host network). If you use a firewall, networking from containers to host may be blocked and thus monitoring won't work (`prometheus` won't be able to call `node_exporter` on the host port 9100).
+If you are using the `monitoring` profile, one of its services (`prometheus`) needs to access the host (since it regularly calls `node_exporter` which in turn needs to be run on the host network). If you use a firewall, networking from containers to host may be blocked and thus monitoring won't work (`prometheus` won't be able to call `node_exporter` on the host port 9100 or `dcgm_exporter` on the host port 9400).
 
-Here is an example to relax the firewall (ufw) to allow traffic coming from a given subnet (see configuration declared in `examples/docker/daemon.json`) where `prometheus` is run, towards port 9100 on the host:
+Here is an example to relax the firewall (ufw) to allow traffic coming from a given subnet (see configuration declared in `examples/docker/daemon.json`) where `prometheus` is run, towards ports 9100 and 9400 on the host:
 
 ```
 sudo ufw allow from 172.80.0.1/16 to any port 9100
+sudo ufw allow from 172.80.0.1/16 to any port 9400
 ```
 
 6. Rotating logs
@@ -188,7 +189,7 @@ Since deployment and running is managed by Docker Compose, most of the configura
 The `app` folder contains the following files:
 
 - a base `docker-compose.yml` that declares and configures services; you may edit this file or prefer using an override (see next bullet) to fit your needs
-- `docker-compose.override-example.yml` can be used as an example to create a `docker-compose.override.yml` (to override existing services or even declare new ones, without editing `docker-compose.yml`)
+- `docker-compose.override-example.*.yml` can be used as an example to create a `docker-compose.override.yml` (to override existing services or even declare new ones, without editing `docker-compose.yml`)
 - `env.example` can be used as an example to create a `.env` file that will be automatically loaded by Docker Compose to define environment variables (made available to `docker compose` commands, and also forwarded to containers depending the `environment:` section of each service)
 - `appctl` is a helper script that shortens a few frequent Docker Compose commands
 
@@ -216,7 +217,7 @@ The previous layout (having folders under `app` being used as volume sources) pr
 
 ### Enable experiment build
 
-Create the `docker-compose.override.yml` file by copying `docker-compose.override-example.yml`: it specifies how to build the image needed for a default experiment service (the build option has not been defined in `docker-compose.yml`).
+Create the `docker-compose.override.yml` file by copying one of `docker-compose.override-example.*.yml`: it specifies how to build the image needed for a default experiment service (the build option has not been defined in `docker-compose.yml`).
 
 An alternative would be to define an `image:` property (in `docker-compose.override.yml`) to pull a published image.
 
@@ -244,26 +245,31 @@ Here are the environment variables you may edit, grouped by service:
     - `DUCKSOUP_WEB_PREFIX`, DuckSoup web server and signaling prefix:
         - leave empty if DuckSoup is available at `https://ducksoup-host`
         - `DUCKSOUP_WEB_PREFIX=/path` if  DuckSoup is available at `https://ducksoup-host/path` (the nginx configuration would then proxy DuckSoup in a `location /path {...}` block)
+    - `DUCKSOUP_EXPLICIT_HOST_CANDIDATE` if true, will use `DUCKSOUP_PUBLIC_IP` as a host candidate during signaling (not necessary if ICE servers are used)
     - `DUCKSOUP_PUBLIC_IP` if set, will be used to add a Host candidate during signaling (not necessary if ICE servers are used)
     - `DUCKSOUP_ALLOWED_WS_ORIGINS`: origins trusted by DuckSoup (you need to add DuckSoup itself, for instance `https://ducksoup-host`, if you want to use test pages like https://ducksoup-host/test/mirror/, or other origins if experiments are served from other domains)
+    - `DUCKSOUP_TURN_ADDRESS` and `DUCKSOUP_TURN_PORT` (defaults to none) if both are set, they will be used to configure DuckSoup embedded TURN server and share its configuration with ducksoup.js as
     - `DUCKSOUP_TEST_LOGIN`: basic auth login for DuckSoup test pages
     - `DUCKSOUP_TEST_PASSWORD`: basic auth password for DuckSoup test pages
     - `DUCKSOUP_NVCODEC`: use NVIDIA hardware for H264 encoding and decoding (only if GPU available on host)
     - `DUCKSOUP_NVCUDA`: use NVIDIA hardware for video *conversion* (only if NVIDIA GPU available on host)
-    - `DUCKSOUP_GENERATE_PLOTS=true` (default to false) generates debug plots in the interaction data folder
-    - `DUCKSOUP_GENERATE_TWCC=true` (default to false) enables RTCP TWCC reports generated by DuckSoup and sent to browser
-    `DUCKSOUP_GCC=true` (default to false, meaning bandwith estimation is done relying on RTCP Receiver Reports) enables GCC bandwidth estimation
-    - `DUCKSOUP_GST_TRACKING=true` (default to false) enabled GStreamer log processing (you are most likely not interested in that option)
+    - `DUCKSOUP_JITTER_BUFFER=200` (defaults to 150, in milliseconds) latency value for the RTP jitter buffer of incoming tracks
+    - `DUCKSOUP_GENERATE_PLOTS=true` (defaults to false) generates debug plots in the interaction data folder
+    - `DUCKSOUP_GENERATE_TWCC=true` (defaults to false) enables RTCP TWCC reports generated by DuckSoup and sent to browser
+    `DUCKSOUP_GCC=true` (defaults to false, meaning bandwith estimation is done relying on RTCP Receiver Reports) enables GCC bandwidth estimation
+    - `DUCKSOUP_GST_TRACKING=true` (defaults to false) enabled GStreamer log processing (you are most likely not interested in that option)
     - `DUCKSOUP_LOG_STDOUT=true` (defaults to false, except when `DUCKSOUP_MODE=DEV`) to print logs to Stdout:
         - if `DUCKSOUP_LOG_FILE` is also set, logs are written to both
         - if neither are set, logs are written to Stderr 
     - `DUCKSOUP_LOG_FILE` declares a file to write logs to (fails silently if file can't be opened) (file path from container viewpoint)
     - `DUCKSOUP_LOG_LEVEL` (defaults to 2) selects log level display (see next section)
+    - `DUCKSOUP_INTERCEPT_GST_LOGS` (defaults to false) disable GStreamer default logger to intercept logs and put them in the relevant interaction logs if possible
     - `DUCKSOUP_FORCE_OVERLAY` displays a time overlay in videos (recorded)
     - `DUCKSOUP_NO_RECORDING` disables audio/video file recordings
-    - `DUCKSOUP_ICE_SERVERS=false` (defaults to `stun:stun.l.google.com:19302`) declares comma separated allowed STUN servers to be used to find ICE candidates (or false to disable STUN)
+    - `DUCKSOUP_STUN_SERVER_URLS=false` (defaults to `stun:stun.l.google.com:19302`) declares comma separated allowed STUN server URLs to be used to find ICE candidates (or false to disable STUN)
     - `GST_DEBUG` controls GStreamer debug output format as explained [here](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c), ` GST_TRACERS` and `GST_DEBUG_FILE` are also exposed
     - `PION_LOG_TRACE` (unset by default) logs pion debug messages (see [more](https://github.com/pion/webrtc/wiki/Debugging-WebRTC))
+    - `DUCKSOUP_CONTAINER_STDOUT_FILE` (not of interest to DuckSoup itself, but has an effect on its container's `CMD`) writes Stdout to the specified file
     - `DUCKSOUP_CONTAINER_STDERR_FILE` (not of interest to DuckSoup itself, but has an effect on its container's `CMD`) writes Stderr to the specified file
 - `postgres` service:
     - `POSTGRES_PASSWORD` PostgreSQL password also known by the experiment service in `OTREE_DATABASE_URL`
@@ -272,12 +278,14 @@ Here are the environment variables you may edit, grouped by service:
     - `OTREE_DATABASE_URL` PostgreSQL connection URL
     - `OTREE_ADMIN_PASSWORD` password of the oTree admin web interface
     - `OTREE_DUCKSOUP_URL` DuckSoup root URL, for instance `https://ducksoup-host/` (with trailing slash)
+    - `OTREE_DUCKSOUP_FRONTEND_VERSION` JS/CSS ducksoup assets version
     - these variables define DuckSoup interaction configuration as requested by oTree for all its experiments: `OTREE_DUCKSOUP_REQUEST_GPU` (defaults to false), `OTREE_DUCKSOUP_FRAMERATE` (deffault to 30), `OTREE_DUCKSOUP_WIDTH` (defaults to 800), `OTREE_DUCKSOUP_HEIGHT` (defaults to 600), `OTREE_DUCKSOUP_FORMAT` (defaults to H264, VP8 being the only other option)
 - `mastok` service:
     - `MASTOK_PORT` to set the port Mastok listens to
     - `MASTOK_ORIGIN` to set what origin is trusted for WebSocket communication. If Mastok is running on port 8190 on localhost, but is served (thanks to a proxy) and reachable at https://mymastok.com, the valid `MASTOK_ORIGIN` value is `https://mymastok.com`
     - `MASTOK_WEB_PREFIX` if Mastok is served under a prefix path
     - `MASTOK_LOGIN` and `MASTOK_PASSWORD` to define login/password for HTTP basic authentication
+    - `MASTOK_DISABLE_LIVE_REDIRECT` (defaults to false) to prevent mastok for redirecting same participant (= same JS fingerprint) to a session they have joined if it is still running
     - `MASTOK_DATABASE_URL` to connect to the database 
     - `MASTOK_OTREE_PUBLIC_URL` (like `http://host.com/otree`) to reach oTree public pages
     - `MASTOK_OTREE_API_URL` (like `http://localhost:8180`) to reach oTree REST API
@@ -295,9 +303,8 @@ Here are the environment variables you may edit, grouped by service:
 Docker Compose is used to run and manage (for instance update and automatically restart) the app. The app is broken down as `profiles` in `docker-compose.yml`:
 
 - the `ducksoup` profile defines DuckSoup
-- the `experiment` profile defines 3 services: `mastok` a service that routes users to `otree`, an example web app that uses DuckSoup (client-side) and relies on a `db`, a PostgreSQL database
+- the `social` profile defines 3 services: `mastok` a service that routes users to `otree`, an example web app that uses DuckSoup (client-side) and relies on a `db`, a PostgreSQL database
 - the `monitoring` profile defines a monitoring utility that relies on Grafana and Prometheus, to display information about the server state
-- the `nvidia` profile extends the monitoring utility with GPU data exporter
 
 You can run profiles independently from each other: you may for instance run only DuckSoup and the monitoring service if the experiment is hosted on another server.
 
@@ -392,7 +399,7 @@ appctl up ducksoup
 
 Ensure you've followed [Optional: installation for NVIDIA GPU](#optional-installation-for-nvidia-gpu), then two actions are needed:
 
-- enable the GPU capability in Docker context: copy the contents of `examples/docker-compose.override-gpu-example.yml` in `app/docker-compose.override.yml` (to be created if not already)
+- enable the GPU capability in Docker context: copy the contents of `examples/docker-compose.override-example.gpu.yml` in `app/docker-compose.override.yml` (to be created if not already)
 - start DuckSoup with `DUCKSOUP_NVCODEC=true` in the `.env` file (see [Environment variables](#environment-variables))
 
 ### Optional: GStreamer plugins

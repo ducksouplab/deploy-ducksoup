@@ -1,0 +1,7 @@
+version: "3.9"
+
+services:
+  ducksoup:
+    ports:
+      - $DUCKSOUP_PORT:$DUCKSOUP_PORT
+      - ${DUCKSOUP_TURN_PORT:-3478}:${DUCKSOUP_TURN_PORT:-3478}

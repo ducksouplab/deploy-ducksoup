@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if [ "$1" = "" ] || [ "$2" = "" ]; then
-    echo "usage for profiles: appctl <start|restart|stop> <ducksoup|monitoring|experiment|nvidia>"
-    echo "usage for services: appctl <pull|sh> <service_name>"
+    echo "usage for profiles: appctl <up|reload|stop> <ducksoup|monitoring|experiment|nvidia>"
+    echo "usage for services: appctl <pull|sh|reset-config> <service_name>"
 elif [ "$1" = "up" ]; then
     cmd="docker compose --profile $2 up -d --build --force-recreate"
 elif [ "$1" = "reload" ]; then
@@ -16,7 +16,9 @@ elif [ "$1" = "pull" ]; then
 elif [ "$1" = "sh" ]; then
     cmd="docker compose exec $2 sh"
 elif [ "$1" = "reset-config" ] && [ "$2" = "ducksoup" ]; then
-    cmd="rm -rI config/ducksoup/*"
+    cmd="rm -rf config/ducksoup/*"
+elif [ "$1" = "reup" ] && [ "$2" = "ducksoup" ]; then
+    cmd="rm -rf config/ducksoup/* && docker compose --profile ducksoup up -d --build --force-recreate"
 fi
 
 if [ "$cmd" ]; then

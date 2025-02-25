@@ -16,12 +16,16 @@ services:
     environment:
       - DUCKSOUP_PORT
       - DUCKSOUP_WEB_PREFIX
-      - DUCKSOUP_PUBLIC_IP
       - DUCKSOUP_ALLOWED_WS_ORIGINS
+      - DUCKSOUP_EXPLICIT_HOST_CANDIDATE
+      - DUCKSOUP_PUBLIC_IP
+      - DUCKSOUP_TURN_ADDRESS
+      - DUCKSOUP_TURN_PORT
       - DUCKSOUP_TEST_LOGIN
       - DUCKSOUP_TEST_PASSWORD
       - DUCKSOUP_NVCODEC
       - DUCKSOUP_NVCUDA
+      - DUCKSOUP_JITTER_BUFFER
       - DUCKSOUP_GENERATE_PLOTS
       - DUCKSOUP_GENERATE_TWCC
       - DUCKSOUP_GCC
@@ -29,16 +33,16 @@ services:
       - DUCKSOUP_LOG_STDOUT
       - DUCKSOUP_LOG_FILE
       - DUCKSOUP_LOG_LEVEL
+      - DUCKSOUP_INTERCEPT_GST_LOGS
       - DUCKSOUP_FORCE_OVERLAY
       - DUCKSOUP_NO_RECORDING
-      - DUCKSOUP_ICE_SERVERS
+      - DUCKSOUP_STUN_SERVER_URLS
+      - CONTAINER_STDOUT_FILE=$DUCKSOUP_CONTAINER_STDOUT_FILE
       - CONTAINER_STDERR_FILE=$DUCKSOUP_CONTAINER_STDERR_FILE
       - GST_DEBUG
       - GST_DEBUG_FILE
       - GST_TRACERS
       - PION_LOG_TRACE
-    ports:
-      - $DUCKSOUP_PORT:$DUCKSOUP_PORT
     volumes:
       - ducksoup-config:/app/config
       - ./data/ducksoup:/app/data
@@ -51,7 +55,7 @@ services:
         max-size: "200k"
   db:
     profiles:
-      - experiment
+      - social
     user: $DOCKER_UID:$DOCKER_GID
     image: postgres:15
     restart: unless-stopped
@@ -64,9 +68,9 @@ services:
       - ./config/db/init.sh:/docker-entrypoint-initdb.d/init.sh
     networks:
       - db_network
-  otree:
+  experiment:
     profiles:
-      - experiment
+      - social
     depends_on: 
       - db
     restart: unless-stopped
@@ -77,11 +81,12 @@ services:
       - OTREE_REST_KEY
       - OTREE_ADMIN_PASSWORD
       - OTREE_AUTH_LEVEL=STUDY
-      - OTREE_DUCKSOUP_URL=$OTREE_DUCKSOUP_URL
-      - OTREE_DUCKSOUP_REQUEST_GPU=$OTREE_DUCKSOUP_REQUEST_GPU
-      - OTREE_DUCKSOUP_FRAMERATE=$OTREE_DUCKSOUP_FRAMERATE
-      - OTREE_DUCKSOUP_WIDTH=$OTREE_DUCKSOUP_WIDTH
-      - OTREE_DUCKSOUP_HEIGHT=$OTREE_DUCKSOUP_HEIGHT
+      - OTREE_DUCKSOUP_URL
+      - OTREE_DUCKSOUP_FRONTEND_VERSION
+      - OTREE_DUCKSOUP_REQUEST_GPU
+      - OTREE_DUCKSOUP_FRAMERATE
+      - OTREE_DUCKSOUP_WIDTH
+      - OTREE_DUCKSOUP_HEIGHT
       - OTREE_DUCKSOUP_FORMAT=$OTREE_DUCKSOUP_FORMAT
     ports:
       - "$OTREE_PORT:$OTREE_PORT"
@@ -94,10 +99,10 @@ services:
           max-size: "200k"
   mastok:
     profiles:
-      - experiment
+      - social
     depends_on: 
       - db
-      - otree
+      - experiment
     image: ducksouplab/mastok:latest
     restart: unless-stopped
     environment:
@@ -106,6 +111,7 @@ services:
       - MASTOK_WEB_PREFIX
       - MASTOK_LOGIN
       - MASTOK_PASSWORD
+      - MASTOK_DISABLE_LIVE_REDIRECT
       - MASTOK_DATABASE_URL
       - MASTOK_OTREE_PUBLIC_URL
       - MASTOK_OTREE_API_URL
@@ -151,6 +157,7 @@ services:
     user: $DOCKER_UID:$DOCKER_GID
     depends_on: 
       - node_exporter
+      - dcgm_exporter
     image: prom/prometheus
     restart: unless-stopped
     ports:
