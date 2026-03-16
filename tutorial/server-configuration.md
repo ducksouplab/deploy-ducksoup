@@ -42,8 +42,24 @@ Before you begin, make sure you have:
    You may also want to install a firewall (like `ufw`) and tools to manage log files.
 
 2. **Optional: Install NVIDIA GPU Support**
-
    If you want to use a GPU for video encoding, follow these steps:
+
+   First, before you begin updating the drivers, check if drivers are already installed in your server:
+   ```bash
+   # 1. See if the NVIDIA kernel module is loaded
+   lsmod | grep nvidia
+
+   # 2. Check which nvidia-driver package is installed
+   dpkg -l | grep nvidia-driver
+
+   # 3. Query the running driver via nvidia-smi
+   nvidia-smi
+
+   # 4. (Optional) List all NVIDIA kernel modules available
+   modinfo nvidia
+   ```
+
+   If the previous commands didn't show any correctly installed drivers, you can install new drivers, with the following, commands, althoguh, you should ensure that your drivers are compatible with your graphics card. Here's an example of what installation can look like fror drivers 460.
 
    - Install the NVIDIA driver:
      ```bash
@@ -78,6 +94,10 @@ Before you begin, make sure you have:
 
    If needed, change Docker's default network settings by editing `/etc/docker/daemon.json`:
 
+   To do so first do:
+   ```nano /etc/docker/daemon.json```
+   And edit the file with the content below. 
+
    ```json
    {
      "default-address-pools": [
@@ -85,6 +105,8 @@ Before you begin, make sure you have:
      ]
    }
    ```
+   You might need to use sudo to be able to edit the file if you do not have rights.
+
 
    Then restart Docker:
 
@@ -139,10 +161,19 @@ Before you begin, make sure you have:
 
    Use the `appctl` script to pull the latest Docker images:
 
+   you might need to add deploy → docker group from an admin account:
+   ```bash sudo usermod -aG docker deploy```
+   
+   Add appctl to your path:
+   ```bash echo 'export PATH="$HOME/deploy-ducksoup/app:$PATH"' >> ~/.bashrc && source ~/.bashrc```
+   
+   Then from the deploy user:
+
    ```bash
+   cd /home/deploy/deploy-ducksoup
    appctl pull ducksoup
    appctl pull db
-   appctl pull otree
+   appctl pull experiment
    appctl pull mastok
    appctl pull grafana
    ```
@@ -193,10 +224,148 @@ Before you begin, make sure you have:
 
    Use Docker Compose to build and start the services:
 
+   Replace the docker compose file with the one provided, and edit if needed:
+   ```bash cp docker-compose.override-example.build-experiment.yml docker-compose.override.yml```
+   
+   Prepare folders needed:
+   ```bash 
+   mkdir -p config/ducksoup
+   chown -R deploy:deploy config
+   ```
+
+
    ```bash
    cd app
-   docker compose up -d --build
+   docker compose --profile ducksoup up -d --build
+   docker compose --profile social up -d --build
    ```
+
+# Create required folders and permissions:
+## Ducksoup logs
+```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log/ducksoup```
+```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log```
+```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log/ducksoup```
+```sudo chmod -R u+rwX /home/deploy/deploy-ducksoup/app/log/ducksoup```
+```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/data/ducksoup```
+
+## Grafana plugins
+```mkdir -p /home/deploy/deploy-ducksoup/app/data/grafana/plugins```
+```sudo chown -R 472:472 /home/deploy/deploy-ducksoup/app/data/grafana/plugins```
+```sudo chmod -R u+rwX /home/deploy/deploy-ducksoup/app/data/grafana```
+
+## postgres
+
+If in your yml file your UID is 1003 then execute:
+
+```bash 
+cd ~/deploy-ducksoup/app
+
+mkdir -p data/db
+
+# chown to your container's UID:GID
+sudo chown -R 1003:1003 data/db
+
+# rebuild / restart
+docker compose up -d db
+```
+
+## Prometheus:
+sudo chown 1003:1003 config/prometheus/prometheus.yml
+sudo chmod 644 config/prometheus/prometheus.yml
+mkdir -p data/prometheus
+sudo chown -R 1003:1003 data/prometheus
+sudo chmod -R u+rwX data/prometheus
+
+## Experiment service (oTree)
+
+The production hosts **do not build** the experiment image locally.
+Instead they run the pre-built image published on Docker Hub.
+
+1. Copy the override that pins the image:
+
+   ```bash
+   cp docker-compose.override-example.build-experiment.yml  docker-compose.override.yml
+   # OR create docker-compose.override.yml containing just:
+   #
+   # services:
+   #   experiment:
+   #     image: ducksouplab/experiment:latest
+   ```
+
+docker compose pull experiment
+docker compose up -d experiment
+
+
+# Test
+- Try this link to see if it's running (replace X.X.X.X by your ip address)
+- https://X.X.X.X/test/mirror/
+
+# Troubleshooting
+
+## Check which images are used
+```docker compose images```
+
+You should see prod for ducksoup and latest for the other ones.
+
+## Nvidia error
+If you see the following error when performing your commands:
+```could not select device driver "nvidia" with capabilities: [[gpu]]```
+
+Run:
+```
+# 1. Add the NVIDIA apt repository
+
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+
+curl -fsSL \
+  "https://nvidia.github.io/nvidia-docker/$(. /etc/os-release && echo $ID$VERSION_ID)/nvidia-docker.list" \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-docker-archive-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+sudo systemctl restart docker
+```
+
+
+## Log permissions
+If when you do:
+
+``` docker ps ```
+
+services keep saying "restarting":
+``` 9938417db1e7   ducksoup:prod "/bin/bash -c 'if [[…"   10 minutes ago   Restarting (1) 18 seconds ago app-ducksoup-1 ``` 
+
+Check the logs:
+```docker compose logs ducksoup```
+
+If you see:
+```ducksoup-1  | /bin/bash: line 1: log/ducksoup.stderr.log: Permission denied```
+
+Make sure that the log folder can be used by the GUID being used by docker.
+
+First, get the GUID:
+```grep -E '^DOCKER_(UID|GID)=' .env```
+
+Second:
+```sudo chown -R 1003:1003 log/ducksoup```
+```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log```
+```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log/ducksoup```
+```sudo chmod -R u+rwX /home/deploy/deploy-ducksoup/app/log/ducksoup```
+
+## See why a service is crashing
+
+If you want to see why a service is crashing, you can execute:
+
+```bash
+docker update --restart=no app-experiment-1 \
+  && docker start app-experiment-1 \
+  && sleep 2 \
+  && docker logs app-experiment-1
+  ```
+
+  Change app-experiment-1 with the name of the service you want to test such as app-db-1, app-experiment-1, app-mastok-1.
+
 
 2. **Access the Application**
 
