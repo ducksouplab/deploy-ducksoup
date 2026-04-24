@@ -11,9 +11,16 @@ services:
         GID: $DOCKER_GID
     restart: unless-stopped
     user: $DOCKER_UID:$DOCKER_GID
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility, graphics, video]
     environment:
       - DUCKSOUP_PORT
-      - DUCKSOUP_WEB_PREFIX
+      - DUCKSOUP_WEB_PREFIX=${DUCKSOUP_WEB_PREFIX}
       - DUCKSOUP_ALLOWED_WS_ORIGINS
       - DUCKSOUP_EXPLICIT_HOST_CANDIDATE
       - DUCKSOUP_PUBLIC_IP
@@ -41,6 +48,10 @@ services:
       - GST_DEBUG_FILE
       - GST_TRACERS
       - PION_LOG_TRACE
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - OMP_NUM_THREADS=4
+      - XNNPACK_NUM_THREADS=4
+      - TFLITE_NUM_THREADS=4
     volumes:
       - ducksoup-config:/app/config
       - ./data/ducksoup:/app/data
@@ -51,6 +62,9 @@ services:
       options:
         max-file: "100"
         max-size: "200k"
+    ports:
+      - "${DUCKSOUP_PORT}:8100"
+
   db:
     profiles:
       - social
@@ -69,12 +83,12 @@ services:
   experiment:
     profiles:
       - social
-    depends_on: 
+    depends_on:
       - db
     restart: unless-stopped
     environment:
       - DATABASE_URL=$OTREE_DATABASE_URL
-      - PORT=$OTREE_PORT
+      - PORT=8000
       - OTREE_PRODUCTION=1
       - OTREE_REST_KEY
       - OTREE_ADMIN_PASSWORD
@@ -86,10 +100,16 @@ services:
       - OTREE_DUCKSOUP_WIDTH
       - OTREE_DUCKSOUP_HEIGHT
       - OTREE_DUCKSOUP_FORMAT=$OTREE_DUCKSOUP_FORMAT
+      #- FORCE_SCRIPT_NAME=/experiment
+      - USE_X_FORWARDED_HOST=1
+      - OTREE_BASE_URL=${OTREE_BASE_URL}
     ports:
-      - "$OTREE_PORT:$OTREE_PORT"
+      - "${OTREE_PORT}:8000"
+
     networks:
-      - db_network
+      db_network:
+        aliases:
+          - socialxp.psy.gla.ac.uk
     logging:
       driver: "json-file"
       options:
@@ -98,7 +118,7 @@ services:
   mastok:
     profiles:
       - social
-    depends_on: 
+    depends_on:
       - db
       - experiment
     image: ducksouplab/mastok:latest
@@ -114,8 +134,14 @@ services:
       - MASTOK_OTREE_PUBLIC_URL
       - MASTOK_OTREE_API_URL
       - MASTOK_OTREE_API_KEY
+
+      - MASTOK_OTREE_PUBLIC_URL=${MASTOK_OTREE_PUBLIC_URL}
+
     ports:
-      - "$MASTOK_PORT:$MASTOK_PORT"
+      - "${MASTOK_PORT}:${MASTOK_PORT}"
+
+    extra_hosts:
+      - "socialxp.psy.gla.ac.uk:host-gateway"
     networks:
       - db_network
     logging:
@@ -174,8 +200,10 @@ services:
     image: grafana/grafana
     restart: unless-stopped
     ports:
-      - "$GF_PORT:3000"
+      - "${GRAFANA_PORT}:3000"
     environment:
+      - GF_SERVER_ROOT_URL=https://ducksoup.psy.gla.ac.uk/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_SECURITY_ADMIN_PASSWORD=$GF_PASSWORD
       - GF_SERVER_ROOT_URL=$GF_PATH
       - GF_SERVER_SERVE_FROM_SUB_PATH=true

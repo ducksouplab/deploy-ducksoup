@@ -7,5 +7,6 @@ app/config/ducksoup
 app/data
 app/log
 app/plugins
+app/plugins_bu
 docker-compose.override.yml
 .local
