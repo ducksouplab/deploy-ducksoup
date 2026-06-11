@@ -156,7 +156,7 @@ sudo nano /etc/nginx/sites-available/ducksoup.conf
 
 ```
 
-Paste the following template. **Replace the `server_name` variables and ensure the `ssl_certificate` paths match where you saved your files in the previous step. Also change "yourdomain.com" string in line with your domain**.
+Paste the following template. **Replace the `server_name` variables and ensure the `ssl_certificate` paths match where you saved your files in the previous step. Also change "yourdomain.edu" string in line with your domain**.
 
 ```nginx
 #-------------- helpers --------------------------------------------------------
@@ -431,7 +431,7 @@ You must update the following sections in the new .env carefully. Do not change 
 
 #### 1: Domain Names and Origins
 
-This section controls where your services live and who is allowed to connect to them. **Replace all instances of `yourdomain.com` with your actual subdomains.**
+This section controls where your services live and who is allowed to connect to them. **Replace all instances of `yourdomain.edu` with your actual subdomains.**
 
 * **`DUCKSOUP_ALLOWED_WS_ORIGINS`**: This is a security feature. It tells DuckSoup which websites are allowed to embed its video streams.
 * *Change to:* `https://ducksoup.yourdomain.edu,https://socialxp.yourdomain.edu` (Use a comma, no spaces).
@@ -579,7 +579,7 @@ Navigate to your instance in a browser to verify the service is running (replace
 ```bash
 https://ducksoup.yourdomain.com/test/mirror/
 https://socialxp.yourdomain.com/demo
-https://socialxp.psy.gla.ac.uk/mastok/
+https://socialxp.yourdomain.com/mastok/
 ```
 
 Also check docker status
