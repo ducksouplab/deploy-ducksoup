@@ -1,395 +1,652 @@
 # Server Configuration Tutorial for DuckSoup Deployment
 
-**BEWARE**: This tutorial hasn't been properly tested, so it might not work perfectly yet. We will update it as we go depending on time and user feedback. If you follow this tutorial and find anything that can be corrected, please let us know.
+**Note**: This tutorial is a living document based on real deployment scenarios. It covers setting up a new server to securely run DuckSoup and oTree-based experiments via Docker Compose and Nginx. If you follow this tutorial and find anything that can be improved, please let us know.
 
-This tutorial will help you set up a new server to run DuckSoup and different Otree-based experiments. If you want to learn how to use DuckSoup, configure it, or code new experiments, please refer to the [Experiment template tutorials](https://github.com/ducksouplab/experiment_templates/tree/main/tutorial).
-
-DuckSoup uses Docker and Docker Compose to manage its services, which makes it easier to install and run.
+If you want to learn how to use DuckSoup, configure it, or code new experiments, please refer to the [Experiment template tutorials](https://github.com/ducksouplab/experiment_templates/tree/main/tutorial).
 
 In this guide, you will learn how to:
-
 - Set up a Debian-based server with the necessary software.
-- Configure the server, including user permissions and security settings.
-- Set up Docker and Nginx to manage the DuckSoup application.
-- Use a helper script called `appctl` to make pulling Docker images and managing services easier.
-- Create the necessary folders and environment settings for the application.
+- Configure Nginx as a reverse proxy with SSL certificates.
+- Use a helper script called `appctl` to manage Docker images.
+- Set up the application folders, user permissions, and environment variables.
+- Troubleshoot common Nginx, Docker, and permission issues.
 
-By the end of this tutorial, you will have a working DuckSoup setup ready for your online experiments. Let's get started!
+---
 
 ## Prerequisites
 
-Before you begin, make sure you have:
+Before you begin, ensure you have:
+- A Debian-based server (or compatible Linux system).
+- SSH access to the server.
+- Basic knowledge of the command line.
+- Registered subdomains pointed to your server's public IP address (e.g., `ducksoup.yourdomain.edu` and `socialxp.yourdomain.edu`). 
+  > **How to do this:** You (or your IT department) must log into where your domain is managed and create an **"A Record"** for each subdomain. This acts as a direct signpost linking the human-readable name to your server's exact mathematical public IP address (e.g., `130.209.87.29`). Nginx and SSL certificates rely entirely on this being correct.
 
-- A Debian-based server (or another compatible Linux system).
-- SSH access to the server (you should be able to log in remotely).
-- Basic knowledge of how to use the command line.
+---
 
-## Step 1: Setting Up the Host
+## Step 1: Setting Up the Host OS
 
-1. **Install Required Software**
+### 1. Install Required Software
+Update your package list and install the core infrastructure:
 
-   On your server, install the following software:
+```bash
+sudo apt-get update
+sudo apt-get install -y docker.io docker-compose nginx certbot
 
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y \
-       docker.io \
-       docker-compose \
-       nginx \
-       certbot
-   ```
-
-   You may also want to install a firewall (like `ufw`) and tools to manage log files.
-
-2. **Optional: Install NVIDIA GPU Support**
-   If you want to use a GPU for video encoding, follow these steps:
-
-   First, before you begin updating the drivers, check if drivers are already installed in your server:
-   ```bash
-   # 1. See if the NVIDIA kernel module is loaded
-   lsmod | grep nvidia
-
-   # 2. Check which nvidia-driver package is installed
-   dpkg -l | grep nvidia-driver
-
-   # 3. Query the running driver via nvidia-smi
-   nvidia-smi
-
-   # 4. (Optional) List all NVIDIA kernel modules available
-   modinfo nvidia
-   ```
-
-   If the previous commands didn't show any correctly installed drivers, you can install new drivers, with the following, commands, althoguh, you should ensure that your drivers are compatible with your graphics card. Here's an example of what installation can look like fror drivers 460.
-
-   - Install the NVIDIA driver:
-     ```bash
-     sudo apt-get install nvidia-driver-460
-     ```
-
-   - Install NVIDIA Docker support:
-     ```bash
-     sudo apt-get install nvidia-container-runtime
-     ```
-
-   - Restart Docker:
-     ```bash
-     sudo systemctl restart docker
-     ```
-
-## Step 2: Configuring the Host
-
-1. **Create a User for Deployment**
-
-   Create a user that will run the application:
-
-   ```bash
-   sudo adduser deploy
-   ```
-
-2. **Set Up Security**
-
-   Configure security settings for the `deploy` user. This may include setting up SSH keys and configuring firewall rules.
-
-3. **Configure Docker**
-
-   If needed, change Docker's default network settings by editing `/etc/docker/daemon.json`:
-
-   To do so first do:
-   ```nano /etc/docker/daemon.json```
-   And edit the file with the content below. 
-
-   ```json
-   {
-     "default-address-pools": [
-       {"base":"172.80.0.0/16","size": 24}
-     ]
-   }
-   ```
-   You might need to use sudo to be able to edit the file if you do not have rights.
-
-
-   Then restart Docker:
-
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl restart docker
-   ```
-
-4. **Set Up Nginx and Let's Encrypt**
-
-   Create a new Nginx server block:
-
-   ```bash
-   sudo nano /etc/nginx/sites-available/ducksoup
-   ```
-
-   Edit the file to match your domain and services. Then enable the server block:
-
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/ducksoup /etc/nginx/sites-enabled/
-   sudo systemctl reload nginx
-   ```
-
-   Use Certbot to enable HTTPS:
-
-   ```bash
-   sudo certbot --nginx -d your-domain.com
-   ```
-
-## Step 3: Configuring the Application
-
-1. **Clone the Repository**
-
-   Switch to the `deploy` user and clone the DuckSoup repository:
-
-   ```bash
-   su deploy
-   git clone https://github.com/ducksouplab/deploy-ducksoup.git
-   cd deploy-ducksoup
-   ```
-
-2. **Set Up the Appctl Script**
-
-   Make the `appctl` script executable and add it to your PATH:
-
-   ```bash
-   chmod u+x app/appctl
-   export PATH="$PATH:`pwd`/app"
-   ```
-
-3. **Pull Docker Images Using Appctl**
-
-   Use the `appctl` script to pull the latest Docker images:
-
-   you might need to add deploy → docker group from an admin account:
-   ```bash sudo usermod -aG docker deploy```
-   
-   Add appctl to your path:
-   ```bash echo 'export PATH="$HOME/deploy-ducksoup/app:$PATH"' >> ~/.bashrc && source ~/.bashrc```
-   
-   Then from the deploy user:
-
-   ```bash
-   cd /home/deploy/deploy-ducksoup
-   appctl pull ducksoup
-   appctl pull db
-   appctl pull experiment
-   appctl pull mastok
-   appctl pull grafana
-   ```
-
-4. **Create Required Folders**
-
-   Create the necessary folders for configuration, data, logs, and plugins:
-
-   ```bash
-   mkdir -p app/config/ducksoup app/data/db app/data/ducksoup app/log/ducksoup app/plugins
-   ```
-
-   Set the correct permissions:
-
-   ```bash
-   chown -R deploy:deploy app/config app/data app/log app/plugins
-   chmod 770 -R app/data app/log
-   ```
-
-5. **Create Environment Variables**
-
-   Copy the example environment file and edit it:
-
-   ```bash
-   cp app/env.example app/.env
-   nano app/.env
-   ```
-
-   Update the variables as needed, especially `DOCKER_UNAME`, `DOCKER_UID`, and `DOCKER_GID`. Here are some key variables to consider:
-
-   - `DOCKER_UNAME`: The username for the Docker container.
-   - `DOCKER_UID`: The user ID for the Docker container.
-   - `DOCKER_GID`: The group ID for the Docker container.
-
-   **Example of Editing Environment Variables**:
-   - To set the username to `deploy`, you would change:
-     ```bash
-     DOCKER_UNAME=deploy
-     ```
-   - To set the user ID to `1001`, you would change:
-     ```bash
-     DOCKER_UID=1001
-     ```
-
-## Step 4: Running the Application
-
-1. **Build and Start Services**
-
-   Use Docker Compose to build and start the services:
-
-   Replace the docker compose file with the one provided, and edit if needed:
-   ```bash cp docker-compose.override-example.build-experiment.yml docker-compose.override.yml```
-   
-   Prepare folders needed:
-   ```bash 
-   mkdir -p config/ducksoup
-   chown -R deploy:deploy config
-   ```
-
-
-   ```bash
-   cd app
-   docker compose --profile ducksoup up -d --build
-   docker compose --profile social up -d --build
-   ```
-
-# Create required folders and permissions:
-## Ducksoup logs
-```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log/ducksoup```
-```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log```
-```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log/ducksoup```
-```sudo chmod -R u+rwX /home/deploy/deploy-ducksoup/app/log/ducksoup```
-```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/data/ducksoup```
-
-## Grafana plugins
-```mkdir -p /home/deploy/deploy-ducksoup/app/data/grafana/plugins```
-```sudo chown -R 472:472 /home/deploy/deploy-ducksoup/app/data/grafana/plugins```
-```sudo chmod -R u+rwX /home/deploy/deploy-ducksoup/app/data/grafana```
-
-## postgres
-
-If in your yml file your UID is 1003 then execute:
-
-```bash 
-cd ~/deploy-ducksoup/app
-
-mkdir -p data/db
-
-# chown to your container's UID:GID
-sudo chown -R 1003:1003 data/db
-
-# rebuild / restart
-docker compose up -d db
 ```
 
-## Prometheus:
+*(You may also want to install a firewall like `ufw` and tools to manage log files).*
+
+### 2. (Optional) Install NVIDIA GPU Support
+
+If you want to use an NVIDIA GPU for video encoding, verify your current drivers before updating:
+
+```bash
+# 1. See if the NVIDIA kernel module is loaded
+lsmod | grep nvidia
+
+# 2. Check which nvidia-driver package is installed
+dpkg -l | grep nvidia-driver
+
+# 3. Query the running driver via nvidia-smi
+nvidia-smi
+
+# 4. (Optional) List all NVIDIA kernel modules available
+modinfo nvidia
+
+```
+
+If you have an NVIDIA GPU but the previous commands didn't show any correctly installed drivers, install them (ensure you choose a driver version compatible with your hardware, e.g., `460`):
+
+```bash
+# Add the NVIDIA apt repository
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -fsSL "[https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list](https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list)" | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-docker-archive-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-driver-460 nvidia-docker2
+sudo systemctl restart docker
+
+```
+
+---
+
+## Step 2: Configuring the Host Environment
+
+### 1. Create a Deployment User
+
+Create a dedicated user to run the application securely:
+
+```bash
+sudo adduser deploy
+sudo usermod -aG docker deploy
+
+```
+
+### 2. Configure Docker Daemon
+
+To prevent IP conflicts with your local network, restrict Docker's default IP range.
+
+```bash
+sudo nano /etc/docker/daemon.json
+
+```
+
+Add the following configuration:
+
+```json
+{
+  "default-address-pools": [
+    {"base":"172.80.0.0/16","size": 24}
+  ]
+}
+
+```
+
+Apply the changes:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+```
+
+---
+
+## Step 3: Nginx & SSL Configuration (Reverse Proxy)
+
+Because our applications run in Docker containers on different internal ports (e.g., DuckSoup on 8100, oTree on 8180), we use Nginx to catch standard web traffic and route it to the correct container securely.
+
+Choose **ONE** of the paths below based on how your infrastructure handles SSL certificates.
+
+### ──────────────────────────────────────────────────
+
+### PATH A: Institution-Provided Certificates (e.g., Central IT)
+
+### ──────────────────────────────────────────────────
+
+*Use this path if your university IT department provides you with the `.key` and `.pem` certificate files directly.*
+
+**1. Secure Your Certificates**
+
+```bash
+# Create a secure folder for your certificates
+sudo mkdir -p /etc/ssl/ducksoup
+
+# Move your private key (.key) and full chain certificate (.pem) into this folder
+# Restrict permissions so only the system can read the private key
+sudo chmod 600 /etc/ssl/ducksoup/*.key
+
+```
+
+**2. Create the Nginx Configuration**
+
+```bash
+sudo nano /etc/nginx/sites-available/ducksoup.conf
+
+```
+
+Paste the following template. **Replace the `server_name` variables and ensure the `ssl_certificate` paths match where you saved your files in the previous step.**
+
+```nginx
+#-------------- helpers --------------------------------------------------------
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+upstream ducksoup   { server 127.0.0.1:8100; }
+upstream experiment { server 127.0.0.1:8180; }
+upstream mastok     { server 127.0.0.1:8190; }
+upstream grafana    { server 127.0.0.1:3000; }
+
+#-------------- Redirect HTTP to HTTPS -----------------------------------------
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name ducksoup.yourdomain.edu socialxp.yourdomain.edu;
+    return 301 https://$host$request_uri;
+}
+
+#===============================================================================
+# SERVER 1: DuckSoup
+#===============================================================================
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ducksoup.yourdomain.edu;
+
+    # MUST MATCH YOUR SAVED FILES
+    ssl_certificate     /etc/ssl/ducksoup/ducksoup_chain.pem;
+    ssl_certificate_key /etc/ssl/ducksoup/server.key;
+    
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    location / { 
+        proxy_pass http://ducksoup;   
+        include snippets/proxy-params.conf; 
+    }
+
+    location /grafana/ { 
+        proxy_pass http://grafana;    
+        include snippets/proxy-params.conf; 
+    }
+}
+
+#===============================================================================
+# SERVER 2: SocialXP (oTree & Mastok)
+#===============================================================================
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name socialxp.yourdomain.edu;
+
+    # MUST MATCH YOUR SAVED FILES
+    ssl_certificate     /etc/ssl/ducksoup/ducksoup_chain.pem;
+    ssl_certificate_key /etc/ssl/ducksoup/server.key;
+
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    location / { 
+        proxy_pass http://experiment; 
+        include snippets/proxy-params.conf; 
+    }
+
+    location /mastok/ { 
+        proxy_pass http://mastok;     
+        include snippets/proxy-params.conf; 
+    }
+
+    location = /experiment {
+        return 301 $scheme://$host$uri/;
+    }
+    
+    location /experiment/ { 
+        proxy_pass [http://127.0.0.1:8180/](http://127.0.0.1:8180/); 
+        include snippets/proxy-params.conf; 
+        proxy_redirect default;
+
+        proxy_set_header   SCRIPT_NAME         /experiment;
+        proxy_set_header   X-Forwarded-Prefix  /experiment;
+        proxy_redirect     off;
+    }
+}
+
+```
+
+**3. Enable and Restart**
+If you manually typed in your certificate paths in Path A, activate your configuration:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/ducksoup.conf /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl restart nginx
+
+```
+
+
+---
+
+### ──────────────────────────────────────────────────
+
+### PATH B: Free Certificates via Let's Encrypt (Certbot)
+
+### ──────────────────────────────────────────────────
+
+*Use this path if you are deploying on an independent server. Your DNS A-records must already point to this server.*
+
+**1. Create the Base HTTP Configuration**
+We will create a basic unencrypted routing file first, and allow Certbot to automatically upgrade it to HTTPS.
+
+```bash
+sudo nano /etc/nginx/sites-available/ducksoup.conf
+
+```
+
+Paste this base template (**Replace the `server_name` variables with your domains**):
+
+```nginx
+#-------------- helpers --------------------------------------------------------
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+upstream ducksoup   { server 127.0.0.1:8100; }
+upstream experiment { server 127.0.0.1:8180; }
+upstream mastok     { server 127.0.0.1:8190; }
+upstream grafana    { server 127.0.0.1:3000; }
+
+#===============================================================================
+# SERVER 1: DuckSoup
+#===============================================================================
+server {
+    listen 80;
+    server_name ducksoup.yourdomain.edu;
+
+    location / { 
+        proxy_pass http://ducksoup;   
+        include snippets/proxy-params.conf; 
+    }
+
+    location /grafana/ { 
+        proxy_pass http://grafana;    
+        include snippets/proxy-params.conf; 
+    }
+}
+
+#===============================================================================
+# SERVER 2: SocialXP (oTree & Mastok)
+#===============================================================================
+server {
+    listen 80;
+    server_name socialxp.yourdomain.edu;
+
+    location / { 
+        proxy_pass http://experiment; 
+        include snippets/proxy-params.conf; 
+    }
+
+    location /mastok/ { 
+        proxy_pass http://mastok;     
+        include snippets/proxy-params.conf; 
+    }
+
+    location = /experiment {
+        return 301 $scheme://$host$uri/;
+    }
+    
+    location /experiment/ { 
+        proxy_pass [http://127.0.0.1:8180/](http://127.0.0.1:8180/); 
+        include snippets/proxy-params.conf; 
+        proxy_redirect default;
+
+        proxy_set_header   SCRIPT_NAME         /experiment;
+        proxy_set_header   X-Forwarded-Prefix  /experiment;
+        proxy_redirect     off;
+    }
+}
+
+```
+
+**2. Enable the Base Configuration**
+Certbot needs the file to be active before it can modify it:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/ducksoup.conf /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo systemctl reload nginx
+
+```
+
+**3. Run Certbot**
+Let Certbot automatically install the certificates and upgrade your Nginx file:
+
+```bash
+sudo certbot --nginx -d ducksoup.yourdomain.edu -d socialxp.yourdomain.edu
+
+```
+
+* Follow the prompts.
+* When asked, tell Certbot to **redirect all HTTP traffic to HTTPS**.
+* Enable automatic 90-day renewals: `sudo systemctl enable certbot.timer`
+
+*(Path B is complete)*
+
+
+---
+
+## Step 4: Configuring the Application
+
+Switch to your `deploy` user to handle the application files.
+
+```bash
+su deploy
+cd /home/deploy
+
+```
+
+### 1. Clone the Repository & Setup Appctl
+
+```bash
+git clone https://github.com/ducksouplab/deploy-ducksoup.git
+cd deploy-ducksoup
+
+chmod u+x app/appctl
+echo 'export PATH="$HOME/deploy-ducksoup/app:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+```
+
+### 2. Configure Docker Compose Overrides
+
+The production hosts **do not build** the experiment image locally. Instead, they run the pre-built image published on Docker Hub.
+
+Copy the override file that pins the correct image:
+
+```bash
+cd app
+cp docker-compose.override-example.build-experiment.yml docker-compose.override.yml
+
+```
+
+### 3. Configure Environment Variables
+
+Copy the example environment file and edit it:
+
+```bash
+cp env.example .env
+nano .env
+
+```
+
+Update the variables, particularly ensuring the UID/GID matches the permissions we will set in the next step:
+
+* `DOCKER_UNAME=deploy`
+* `DOCKER_UID=1003`
+* `DOCKER_GID=1003`
+
+
+The `.env` file is the master configuration file for your entire deployment. It tells the Docker containers how to talk to each other, what passwords to use, and where your server is located on the internet.
+
+Open the file in the nano editor:
+
+```bash
+nano .env
+
+```
+You must update the following sections in the new .env carefully. Do not change the variables that are not listed below unless you know exactly what you are doing.
+
+#### 1: Domain Names and Origins
+
+This section controls where your services live and who is allowed to connect to them. **Replace all instances of `yourdomain.com` with your actual subdomains.**
+
+* **`DUCKSOUP_ALLOWED_WS_ORIGINS`**: This is a security feature. It tells DuckSoup which websites are allowed to embed its video streams.
+* *Change to:* `https://ducksoup.yourdomain.edu,https://socialxp.yourdomain.edu` (Use a comma, no spaces).
+
+
+* **`OTREE_DUCKSOUP_URL`**: Where oTree looks for the DuckSoup video engine.
+* *Change to:* `https://ducksoup.yourdomain.edu`
+
+
+* **`OTREE_BASE_URL`**: The main URL where your participants will take the experiment.
+* *Change to:* `https://socialxp.yourdomain.edu`
+
+
+* **`MASTOK_ORIGIN`**: Where the Mastok lobby service lives.
+* *Change to:* `https://socialxp.yourdomain.edu`
+
+
+* **`MASTOK_OTREE_PUBLIC_URL`**: The public URL for oTree.
+* *Change to:* `https://socialxp.yourdomain.edu`
+
+
+* **`DUCKSOUP_TURN_ADDRESS`**: The domain handling complex video routing.
+* *Change to:* `ducksoup.yourdomain.edu` (Note: No `https://` prefix here).
+
+
+* **`GF_PATH`**: Where your Grafana monitoring dashboard lives.
+* *Change to:* `https://ducksoup.yourdomain.edu/grafana`
+
+
+
+#### 2: User IDs and Permissions
+
+This is the most common cause of deployment failures. Docker containers need to write files (like logs and databases) to your host machine. They must use the correct user permissions to do so.
+
+* **`DOCKER_UNAME`**: The username you created in Step 2.
+* *Change to:* `deploy`
+
+
+* **`DOCKER_UID` and `DOCKER_GID**`: These are the numerical IDs of the `deploy` user.
+* **How to find them:** Save your `.env` file (`Ctrl+O`, `Enter`), exit nano (`Ctrl+X`), and run the command `id deploy`. You will see `uid=100X(deploy) gid=100X(deploy)`.
+* *Change to:* The exact numbers output by that command (e.g., `1001`, `1002`, `1003`).
+
+
+
+#### 3: The Public IP Address
+
+DuckSoup handles real-time WebRTC video, which requires knowing the exact physical address of the server on the internet so it doesn't get blocked by strict firewalls.
+
+* **`DUCKSOUP_PUBLIC_IP`**: The mathematical IP address of your server.
+* **How to find it:** If you don't know it, run `curl ifconfig.me` in your server's terminal.
+* *Change to:* Your IP address (e.g., `130.209.87.29`).
+
+
+#### 4: Passwords and Security Keys
+You **must** change every field that says `change_me` or has a default password. These secure your databases, admin panels, and API connections. You may use the same password for Mastok, grafana, otree and DuckSoup.
+
+* **`DUCKSOUP_TEST_PASSWORD`**: Password to access the `https://ducksoup.../test/mirror/` page.
+* **`POSTGRES_PASSWORD`**: The master password for your database. Make this a long, complex string (e.g., `sUp3rS3cr3tDBp4ss`).
+* *Important:* Once you change this, you must also update the two database connection strings below it to match:
+* `OTREE_DATABASE_URL="postgres://experiment:YOUR_NEW_PASSWORD@db/experiment"`
+* `MASTOK_DATABASE_URL="postgres://experiment:YOUR_NEW_PASSWORD@db/mastok"`
+
+* **`OTREE_ADMIN_PASSWORD`**: Password to log into the oTree admin dashboard.
+* **`OTREE_REST_KEY`** and **`MASTOK_OTREE_API_KEY`**: These two fields are how Mastok securely talks to oTree in the background. **They must be identical.** Make up a random string of letters and numbers (e.g., `MyS3cr3tAP1K3y`) and paste it into both fields.
+* **`MASTOK_PASSWORD`**: Password for the Mastok admin panel.
+* **`GF_PASSWORD`**: Password to log into Grafana.
+
+
+#### 5: Hardware Acceleration (Optional)
+
+If you followed the optional step to install NVIDIA GPU drivers in Step 1, you can enable hardware acceleration for video encoding. This drastically improves performance.
+
+* **`DUCKSOUP_NVCODEC`**: Change to `true` (if you have an NVIDIA GPU) or `false` (if you are running on standard CPU hardware).
+* **`DUCKSOUP_NVCUDA`**: Change to `true` (if GPU) or `false` (if CPU).
+* **`OTREE_DUCKSOUP_REQUEST_GPU`**: Change to `true` (if GPU) or `false` (if CPU).
+
+Once you have updated all of these fields, save the file (`Ctrl+O`, `Enter`) and exit nano (`Ctrl+X`).
+
+### 4. Create Folders and Set Permissions
+
+Docker containers need persistent host folders. These **must** match the UID/GID defined in your `.env` file (usually `1003`) and specific container requirements (like `472` for Grafana).
+
+Run these commands sequentially:
+
+```bash
+# Create directories
+mkdir -p config/ducksoup config/prometheus
+mkdir -p data/db data/ducksoup data/grafana/plugins data/prometheus
+mkdir -p log/ducksoup plugins
+
+# Apply broad ownership to deploy user
+sudo chown -R deploy:deploy config data log plugins
+
+# DuckSoup & General Permissions (UID 1003)
+sudo chown -R 1003:1003 data/db data/ducksoup log/ducksoup log
+sudo chmod -R u+rwX log/ducksoup
+
+# Grafana Permissions (UID 472)
+sudo chown -R 472:472 data/grafana/plugins
+sudo chmod -R u+rwX data/grafana
+
+# Prometheus Permissions (UID 1003)
 sudo chown 1003:1003 config/prometheus/prometheus.yml
 sudo chmod 644 config/prometheus/prometheus.yml
-mkdir -p data/prometheus
 sudo chown -R 1003:1003 data/prometheus
 sudo chmod -R u+rwX data/prometheus
 
-## Experiment service (oTree)
+```
 
-The production hosts **do not build** the experiment image locally.
-Instead they run the pre-built image published on Docker Hub.
+---
 
-1. Copy the override that pins the image:
+## Step 5: Running the Application
 
-   ```bash
-   cp docker-compose.override-example.build-experiment.yml  docker-compose.override.yml
-   # OR create docker-compose.override.yml containing just:
-   #
-   # services:
-   #   experiment:
-   #     image: ducksouplab/experiment:latest
-   ```
+### 1. Pull the Images
 
-docker compose pull experiment
+Use the `appctl` script to pull the latest Docker images:
+
+```bash
+appctl pull ducksoup
+appctl pull db
+appctl pull experiment
+appctl pull mastok
+appctl pull grafana
+
+```
+
+### 2. Build and Start Services
+
+Start the main profiles, and ensure the database and experiment containers are running:
+
+```bash
+docker compose --profile ducksoup up -d --build
+docker compose --profile social up -d --build
+
+# Ensure specific backing services are up
+docker compose up -d db
 docker compose up -d experiment
 
-
-# Test
-- Try this link to see if it's running (replace X.X.X.X by your ip address)
-- https://X.X.X.X/test/mirror/
-
-# Troubleshooting
-
-## Check which images are used
-```docker compose images```
-
-You should see prod for ducksoup and latest for the other ones.
-
-## Nvidia error
-If you see the following error when performing your commands:
-```could not select device driver "nvidia" with capabilities: [[gpu]]```
-
-Run:
-```
-# 1. Add the NVIDIA apt repository
-
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-
-curl -fsSL \
-  "https://nvidia.github.io/nvidia-docker/$(. /etc/os-release && echo $ID$VERSION_ID)/nvidia-docker.list" \
-  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-docker-archive-keyring.gpg] https://#g' \
-  | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-
-sudo apt-get update
-sudo apt-get install -y nvidia-docker2
-sudo systemctl restart docker
 ```
 
+### 3. Test the Deployment
 
-## Log permissions
-If when you do:
+Navigate to your instance in a browser to verify the service is running (replace the domain with your actual URL):
+`https://ducksoup.yourdomain.com/test/mirror/`
+`https://socialxp.yourdomain.com/demo`
+`https://socialxp.yourdomain.com/demo`
+`https://socialxp.psy.gla.ac.uk/mastok/`
 
-``` docker ps ```
+---
 
-services keep saying "restarting":
-``` 9938417db1e7   ducksoup:prod "/bin/bash -c 'if [[…"   10 minutes ago   Restarting (1) 18 seconds ago app-ducksoup-1 ``` 
+## Troubleshooting
 
-Check the logs:
-```docker compose logs ducksoup```
+### 1. Check which images are used
 
-If you see:
-```ducksoup-1  | /bin/bash: line 1: log/ducksoup.stderr.log: Permission denied```
+To verify you are using the correct image tags (`prod` for DuckSoup, `latest` for others):
 
-Make sure that the log folder can be used by the GUID being used by docker.
+```bash
+docker compose images
 
-First, get the GUID:
-```grep -E '^DOCKER_(UID|GID)=' .env```
+```
 
-Second:
-```sudo chown -R 1003:1003 log/ducksoup```
-```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log```
-```sudo chown -R 1003:1003 /home/deploy/deploy-ducksoup/app/log/ducksoup```
-```sudo chmod -R u+rwX /home/deploy/deploy-ducksoup/app/log/ducksoup```
+### 2. Nvidia Error (`could not select device driver "nvidia"`)
 
-## See why a service is crashing
+If you see an error stating `could not select device driver "nvidia" with capabilities: [[gpu]]`, it means the NVIDIA container runtime isn't installed properly. Revisit Step 1 to install `nvidia-docker2` and restart the Docker daemon.
 
-If you want to see why a service is crashing, you can execute:
+### 3. Service Keeps Restarting (Permission Denied)
+
+If `docker ps` shows a container continuously restarting, check its logs:
+
+```bash
+docker compose logs ducksoup
+
+```
+
+If you see `/bin/bash: line 1: log/ducksoup.stderr.log: Permission denied`, ensure the log folder is owned by the UID used by Docker.
+
+```bash
+grep -E '^DOCKER_(UID|GID)=' .env
+# Then apply the chown command from Step 4 using that ID.
+
+```
+
+### 4. See why a service is crashing
+
+To isolate a crashing service (e.g., `app-experiment-1`, `app-db-1`, `app-mastok-1`) without it looping:
 
 ```bash
 docker update --restart=no app-experiment-1 \
   && docker start app-experiment-1 \
   && sleep 2 \
   && docker logs app-experiment-1
-  ```
 
-  Change app-experiment-1 with the name of the service you want to test such as app-db-1, app-experiment-1, app-mastok-1.
+```
 
+### 5. Browser Shows "Not Secure" / Nginx Duplicate Upstream Error
 
-2. **Access the Application**
+* **Nginx Error:** If Nginx fails to boot complaining about `duplicate upstream`, check `/etc/nginx/sites-enabled/` and delete any old `.bak` files.
+* **Browser Error:** If the server is correctly configured but Chrome shows "Not Secure", the browser has cached a previous warning. Open an **Incognito Window** to verify. To fix the main browser, click the warning, click "Turn on warnings", and hard-refresh (`Cmd+Shift+R`).
 
-   You can now access the DuckSoup application at `http://your-domain.com`.
-
-## Conclusion
-
-You have successfully set up a new server using the DuckSoup deploy repository. For more customization and usage details, refer to the main README file.
+---
 
 ## Editing YAML Files
 
-The YAML files, such as `docker-compose.yml`, can be edited to customize the services and configurations according to your needs. For example, you might want to change the ports, environment variables, or add new services. 
+The YAML files, such as `docker-compose.yml`, can be edited to customize the services and configurations according to your needs. For example, you might want to change the ports, environment variables, or add new services.
 
-**Example of Editing `docker-compose.yml`**:
-- To change the port for the DuckSoup service, find the section in `docker-compose.yml` that looks like this:
-  ```yaml
-  ports:
-    - "8100:8100"
-  ```
-- You can change it to:
-  ```yaml
-  ports:
-    - "8200:8100"
-  ```
-This change would make DuckSoup accessible on port 8200 instead of 8100.
+Example of Editing `docker-compose.yml`:
+To change the port for the DuckSoup service, find the section in `docker-compose.yml` that looks like this:
 
-Make sure to review the YAML files and adjust them based on your specific requirements.
+```yaml
+ports:
+  - "8100:8100"
+
+```
+
+You can change it to:
+
+```yaml
+ports:
+  - "8200:8100"
+
+```
+
+This change would make the underlying container accessible on port 8200 instead of 8100 (Remember to update your Nginx configuration upstream block to match!). Review the YAML files and adjust them based on your specific requirements.
+
+```
