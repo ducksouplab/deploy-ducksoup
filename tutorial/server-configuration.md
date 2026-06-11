@@ -125,9 +125,9 @@ sudo systemctl restart docker
 
 ## Step 3: Nginx & SSL Configuration (Reverse Proxy)
 
-Because our applications run in Docker containers on different internal ports (e.g., DuckSoup on 8100, oTree on 8180), we use Nginx to catch standard web traffic and route it to the correct container securely.
+Because our applications run in Docker containers on different internal ports (e.g., DuckSoup on 8100, oTree on 8180), we use Nginx to catch standard web traffic and route it to the correct container securely. 
 
-Choose **ONE** of the paths below based on how your infrastructure handles SSL certificates.
+Choose **ONE** of the paths A or B below based on how your infrastructure handles SSL certificates.
 
 ### ──────────────────────────────────────────────────
 
@@ -135,7 +135,7 @@ Choose **ONE** of the paths below based on how your infrastructure handles SSL c
 
 ### ──────────────────────────────────────────────────
 
-*Use this path if your university IT department provides you with the `.key` and `.pem` certificate files directly.*
+*Use this path if your university IT department provides you with the `.key` and `.pem` certificate files directly. This is most often the case if you are working within a University*
 
 **1. Secure Your Certificates**
 
@@ -156,7 +156,7 @@ sudo nano /etc/nginx/sites-available/ducksoup.conf
 
 ```
 
-Paste the following template. **Replace the `server_name` variables and ensure the `ssl_certificate` paths match where you saved your files in the previous step.**
+Paste the following template. **Replace the `server_name` variables and ensure the `ssl_certificate` paths match where you saved your files in the previous step. Also change "yourdomain.com" string in line with your domain**.
 
 ```nginx
 #-------------- helpers --------------------------------------------------------
@@ -266,7 +266,7 @@ sudo systemctl restart nginx
 
 ### ──────────────────────────────────────────────────
 
-*Use this path if you are deploying on an independent server. Your DNS A-records must already point to this server.*
+*Use this path if you are deploying on an independent server and not within e.g. a University. Note your DNS A-records must already point to this server.*
 
 **1. Create the Base HTTP Configuration**
 We will create a basic unencrypted routing file first, and allow Certbot to automatically upgrade it to HTTPS.
