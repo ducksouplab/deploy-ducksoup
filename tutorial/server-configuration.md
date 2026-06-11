@@ -2,14 +2,22 @@
 
 **Note**: This tutorial is a living document based on real deployment scenarios. It covers setting up a new server to securely run DuckSoup and oTree-based experiments via Docker Compose and Nginx. If you follow this tutorial and find anything that can be improved, please let us know.
 
-If you want to learn how to use DuckSoup, configure it, or code new experiments, please refer to the [Experiment template tutorials](https://github.com/ducksouplab/experiment_templates/tree/main/tutorial).
+In this tutorial we will be setting up a server to run DuckSoup and the realted applications. To do this, we will use Docker, a containarisation application, designed to help developers build, share, and run "container" applications. This will enable you to run mutliparticipant social interaction experiments online with participants all over the world. 
+
+We will be running these docker containers in the new server : 
+- Mastok : This application handles mutliparticipant orechestration. It is great to manage otree experiments at scale, create and monitor dozens of data collection sessions in paralell.
+- DuckSoup : A videonconference experimental platform which enables users to transform videoconference participant's voice and face in real time with Gstreamer algorithms.
+- An Otree server : Otree is an incredible python package built to perform multiparticipant psychological experiments online. Coupled with DuckSoup, otree enables to perform social interaction experiments with several participants in parallel and in real time.
+- Grafana : A service to monitor server usage, usefull when performing experiments with large amounts of participants.
+
+If you want to learn how to code new experiments, please refer to the [Experiment template tutorials](https://github.com/ducksouplab/experiment_templates/tree/main/tutorial).
 
 In this guide, you will learn how to:
-- Set up a Debian-based server with the necessary software.
-- Configure Nginx as a reverse proxy with SSL certificates.
+- Set up a Debian-based server with the necessary software to run DuckSoup.
+- Configure Nginx as a reverse proxy with SSL certificates so that your website is visible all over the world.
 - Use a helper script called `appctl` to manage Docker images.
-- Set up the application folders, user permissions, and environment variables.
-- Troubleshoot common Nginx, Docker, and permission issues.
+- Set up the application folders, user permissions, and environment variables for DuckSoup to work properly.
+- Troubleshoot common Nginx, Docker, and permission issues. 
 
 ---
 
@@ -580,8 +588,7 @@ Also check docker status
 docker ps
 ```
 
-Are all the services showing up and running? If not, check the troubleshooting documentation below.
-
+Are all the services showing up and running? If not, check the troubleshooting documentation below. If everything is up and running, you may now start coding your own experiments, please refer to the [Experiment template tutorials](https://github.com/ducksouplab/experiment_templates/tree/main/tutorial), which explains how to do this.
 
 ---
 
