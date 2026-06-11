@@ -568,14 +568,24 @@ docker compose up -d experiment
 ### 3. Test the Deployment
 
 Navigate to your instance in a browser to verify the service is running (replace the domain with your actual URL):
-`https://ducksoup.yourdomain.com/test/mirror/`
-`https://socialxp.yourdomain.com/demo`
-`https://socialxp.yourdomain.com/demo`
-`https://socialxp.psy.gla.ac.uk/mastok/`
+
+```bash
+https://ducksoup.yourdomain.com/test/mirror/
+https://socialxp.yourdomain.com/demo
+https://socialxp.psy.gla.ac.uk/mastok/
+```
+
+Also check docker status
+```bash
+docker ps
+```
+
+Are all the services showing up and running? If not, check the troubleshooting documentation below.
+
 
 ---
 
-## Troubleshooting
+## Step 6: Troubleshooting
 
 ### 1. Check which images are used
 
